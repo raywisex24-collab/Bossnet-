@@ -23,51 +23,41 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const ghostUsers = [
-  { name: 'Emeka Nwosu', avatar: 'https://i.pravatar.cc/150?u=emeka' },
-  { name: 'Adesua Etomi', avatar: 'https://i.pravatar.cc/150?u=adesua' },
-  { name: 'Tunde Ednut', avatar: 'https://i.pravatar.cc/150?u=tunde' },
-  { name: 'Chioma Ade', avatar: 'https://i.pravatar.cc/150?u=chioma' }
-];
-
 export default async function handler(req, res) {
   try {
-    // UPDATED: Calling the TikTok Scraper Actor directly
-    const APIFY_URL = `https://api.apify.com/v2/acts/apify~tiktok-scraper/run-sync-get-dataset-items?token=${process.env.APIFY_TOKEN}`;
+    // UPDATED URL: Using the 'clockworks' TikTok Scraper which is the standard
+    const APIFY_URL = `https://api.apify.com/v2/acts/clockworks~tiktok-scraper/run-sync-get-dataset-items?token=${process.env.APIFY_TOKEN}`;
     
     const apifyResponse = await fetch(APIFY_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        "type": "hashtag",
         "hashtags": ["trending"], 
         "resultsPerPage": 1,
-        "shouldDownloadVideos": false,
-        "shouldDownloadCovers": false
+        "excludeFakeAds": true
       })
     });
 
     const data = await apifyResponse.json();
 
-    // Check if TikTok returned data
     if (!data || !Array.isArray(data) || data.length === 0) {
       return res.status(200).json({ 
         success: false, 
-        message: "TikTok scraper returned no items.", 
+        message: "No TikToks found. Check Apify URL or Token.", 
         debug: data 
       });
     }
 
     const item = data[0];
-    // TikTok scraper uses 'videoMeta.downloadAddr' or 'webVideoUrl'
+    
+    // TikTok data mapping based on your console screenshot
     const videoUrl = item.videoMeta?.downloadAddr || item.webVideoUrl;
+    const authorName = item.authorMeta?.name || "TikTok User";
+    const authorAvatar = item.authorMeta?.avatar || "https://i.pravatar.cc/150";
+    const caption = item.text || "Check this out! #Bossnet";
 
     if (!videoUrl) {
-      return res.status(200).json({ 
-        success: false, 
-        message: "Found a TikTok post, but couldn't find the video link.",
-        itemFound: item 
-      });
+      return res.status(200).json({ success: false, message: "Video link missing in TikTok data." });
     }
 
     // 3. UPLOAD TO CLOUDINARY
@@ -77,28 +67,22 @@ export default async function handler(req, res) {
     });
 
     // 4. SAVE TO FIREBASE
-    const randomUser = ghostUsers[Math.floor(Math.random() * ghostUsers.length)];
-
     await db.collection('posts').add({
-      authorName: randomUser.name,
-      authorAvatar: randomUser.avatar,
+      authorName: authorName,
+      authorAvatar: authorAvatar,
       videoUrl: uploadResponse.secure_url,
-      caption: item.text || "New trending TikTok! #Bossnet",
-      likes: Math.floor(Math.random() * 1000),
+      caption: caption,
+      likes: item.diggCount || Math.floor(Math.random() * 500),
       createdAt: new Date().toISOString(),
     });
 
     return res.status(200).json({ 
       success: true, 
-      message: "Victory! TikTok post is live on your app.",
+      message: "Victory! The TikTok is now on Bossnet.",
       video: uploadResponse.secure_url
     });
 
   } catch (error) {
-    console.error("Scraper Error:", error);
-    return res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
+    return res.status(500).json({ success: false, error: error.message });
   }
 }
