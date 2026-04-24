@@ -2,14 +2,18 @@ import admin from 'firebase-admin';
 import { v2 as cloudinary } from 'cloudinary';
 import fetch from 'node-fetch';
 
-// 1. INITIALIZE FIREBASE (The "Safe" Way)
+// 1. INITIALIZE FIREBASE (With the final parse fix)
 if (!admin.apps.length) {
+  const rawKey = process.env.FIREBASE_PRIVATE_KEY;
+  const formattedKey = rawKey 
+    ? rawKey.replace(/\\n/g, '\n').replace(/"/g, '').trim() 
+    : undefined;
+
   admin.initializeApp({
     credential: admin.credential.cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      // The replace fix ensures the private key works on Vercel
-      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      privateKey: formattedKey,
     }),
   });
 }
@@ -23,7 +27,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// 3. GHOST USER DATA (The "Real People" for the app)
+// 3. GHOST USER DATA
 const ghostUsers = [
   { name: 'Emeka Nwosu', avatar: 'https://i.pravatar.cc/150?u=emeka' },
   { name: 'Adesua Etomi', avatar: 'https://i.pravatar.cc/150?u=adesua' },
@@ -33,27 +37,42 @@ const ghostUsers = [
 
 export default async function handler(req, res) {
   try {
-    // A. Trigger Apify to get a trending video
+    // A. Fetch from Apify
     const apifyResponse = await fetch(`https://api.apify.com/v2/actor-tasks/raywise~instagram-scraper-task/run-sync-get-dataset-items?token=${process.env.APIFY_TOKEN}`);
     const data = await apifyResponse.json();
 
-    if (!data || data.length === 0) {
-      throw new Error("No videos found from Apify.");
+    // B. Check if data exists (The fix for your latest error)
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      return res.status(200).json({ 
+        success: false, 
+        message: "Apify returned no items. Check your Instagram Scraper task.",
+        debug: data 
+      });
     }
 
-    const videoUrl = data[0].videoUrl || data[0].displayUrl;
-    const caption = data[0].caption || "Check out this new reel! #Bossnet";
+    const item = data[0];
+    const videoUrl = item.videoUrl || item.displayUrl;
 
-    // B. Upload the video to Cloudinary so it's hosted permanently
+    if (!videoUrl) {
+       return res.status(200).json({ 
+        success: false, 
+        message: "Found an item, but it has no videoUrl.",
+        itemFound: item 
+      });
+    }
+
+    const caption = item.caption || "Check out this new reel! #Bossnet";
+
+    // C. Upload to Cloudinary
     const uploadResponse = await cloudinary.uploader.upload(videoUrl, {
       resource_type: 'video',
       folder: 'bossnet_reels',
     });
 
-    // C. Pick a random Ghost User
+    // D. Pick a random Ghost User
     const randomUser = ghostUsers[Math.floor(Math.random() * ghostUsers.length)];
 
-    // D. Save to Firebase (Make sure your collection name matches your app)
+    // E. Save to Firebase
     const newPost = {
       authorName: randomUser.name,
       authorAvatar: randomUser.avatar,
@@ -63,13 +82,14 @@ export default async function handler(req, res) {
       createdAt: new Date().toISOString(),
     };
 
-    // NOTE: If your app uses "reels" instead of "posts", change the name below!
+    // Change 'posts' to whatever your collection is named
     await db.collection('posts').add(newPost);
 
     return res.status(200).json({ 
       success: true, 
       message: "Post created successfully!", 
-      postedBy: randomUser.name 
+      postedBy: randomUser.name,
+      video: uploadResponse.secure_url
     });
 
   } catch (error) {
