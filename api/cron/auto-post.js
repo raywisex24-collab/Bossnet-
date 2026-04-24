@@ -2,13 +2,10 @@ import admin from 'firebase-admin';
 import { v2 as cloudinary } from 'cloudinary';
 import fetch from 'node-fetch';
 
-// 1. INITIALIZE FIREBASE (With the final parse fix)
+// 1. INITIALIZE FIREBASE
 if (!admin.apps.length) {
   const rawKey = process.env.FIREBASE_PRIVATE_KEY;
-  const formattedKey = rawKey 
-    ? rawKey.replace(/\\n/g, '\n').replace(/"/g, '').trim() 
-    : undefined;
-
+  const formattedKey = rawKey ? rawKey.replace(/\\n/g, '\n').replace(/"/g, '').trim() : undefined;
   admin.initializeApp({
     credential: admin.credential.cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
@@ -17,7 +14,6 @@ if (!admin.apps.length) {
     }),
   });
 }
-
 const db = admin.firestore();
 
 // 2. CONFIGURE CLOUDINARY
@@ -27,7 +23,6 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// 3. GHOST USER DATA
 const ghostUsers = [
   { name: 'Emeka Nwosu', avatar: 'https://i.pravatar.cc/150?u=emeka' },
   { name: 'Adesua Etomi', avatar: 'https://i.pravatar.cc/150?u=adesua' },
@@ -37,63 +32,70 @@ const ghostUsers = [
 
 export default async function handler(req, res) {
   try {
-    // A. Fetch from Apify
-    const apifyResponse = await fetch(`https://api.apify.com/v2/actor-tasks/raywise~instagram-scraper-task/run-sync-get-dataset-items?token=${process.env.APIFY_TOKEN}`);
+    // UPDATED: Calling the TikTok Scraper Actor directly
+    const APIFY_URL = `https://api.apify.com/v2/acts/apify~tiktok-scraper/run-sync-get-dataset-items?token=${process.env.APIFY_TOKEN}`;
+    
+    const apifyResponse = await fetch(APIFY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        "type": "hashtag",
+        "hashtags": ["trending"], 
+        "resultsPerPage": 1,
+        "shouldDownloadVideos": false,
+        "shouldDownloadCovers": false
+      })
+    });
+
     const data = await apifyResponse.json();
 
-    // B. Check if data exists (The fix for your latest error)
+    // Check if TikTok returned data
     if (!data || !Array.isArray(data) || data.length === 0) {
       return res.status(200).json({ 
         success: false, 
-        message: "Apify returned no items. Check your Instagram Scraper task.",
+        message: "TikTok scraper returned no items.", 
         debug: data 
       });
     }
 
     const item = data[0];
-    const videoUrl = item.videoUrl || item.displayUrl;
+    // TikTok scraper uses 'videoMeta.downloadAddr' or 'webVideoUrl'
+    const videoUrl = item.videoMeta?.downloadAddr || item.webVideoUrl;
 
     if (!videoUrl) {
-       return res.status(200).json({ 
+      return res.status(200).json({ 
         success: false, 
-        message: "Found an item, but it has no videoUrl.",
+        message: "Found a TikTok post, but couldn't find the video link.",
         itemFound: item 
       });
     }
 
-    const caption = item.caption || "Check out this new reel! #Bossnet";
-
-    // C. Upload to Cloudinary
+    // 3. UPLOAD TO CLOUDINARY
     const uploadResponse = await cloudinary.uploader.upload(videoUrl, {
       resource_type: 'video',
-      folder: 'bossnet_reels',
+      folder: 'bossnet_tiktok',
     });
 
-    // D. Pick a random Ghost User
+    // 4. SAVE TO FIREBASE
     const randomUser = ghostUsers[Math.floor(Math.random() * ghostUsers.length)];
 
-    // E. Save to Firebase
-    const newPost = {
+    await db.collection('posts').add({
       authorName: randomUser.name,
       authorAvatar: randomUser.avatar,
       videoUrl: uploadResponse.secure_url,
-      caption: caption,
-      likes: Math.floor(Math.random() * 500),
+      caption: item.text || "New trending TikTok! #Bossnet",
+      likes: Math.floor(Math.random() * 1000),
       createdAt: new Date().toISOString(),
-    };
-
-    // Change 'posts' to whatever your collection is named
-    await db.collection('posts').add(newPost);
+    });
 
     return res.status(200).json({ 
       success: true, 
-      message: "Post created successfully!", 
-      postedBy: randomUser.name,
+      message: "Victory! TikTok post is live on your app.",
       video: uploadResponse.secure_url
     });
 
   } catch (error) {
-    console.error("Auto-Post Error:", error);
+    console.error("Scraper Error:", error);
     return res.status(500).json({ 
       success: false, 
       error: error.message 
