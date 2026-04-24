@@ -2,13 +2,10 @@ import admin from 'firebase-admin';
 import { v2 as cloudinary } from 'cloudinary';
 import fetch from 'node-fetch';
 
-// 1. INITIALIZE FIREBASE (Secure Parse Logic)
+// 1. FIREBASE SETUP
 if (!admin.apps.length) {
   const rawKey = process.env.FIREBASE_PRIVATE_KEY;
-  const formattedKey = rawKey 
-    ? rawKey.replace(/\\n/g, '\n').replace(/"/g, '').trim() 
-    : undefined;
-
+  const formattedKey = rawKey ? rawKey.replace(/\\n/g, '\n').replace(/"/g, '').trim() : undefined;
   admin.initializeApp({
     credential: admin.credential.cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
@@ -19,14 +16,14 @@ if (!admin.apps.length) {
 }
 const db = admin.firestore();
 
-// 2. CONFIGURE CLOUDINARY
+// 2. CLOUDINARY SETUP
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// 3. PROFESSIONAL GHOST USER PROFILES (7 Real Names)
+// 3. YOUR 7 PROFESSIONAL GHOST USERS
 const ghostUsers = [
   { name: 'Emeka Nwosu', avatar: 'https://i.pravatar.cc/150?u=emeka' },
   { name: 'Adesua Etomi', avatar: 'https://i.pravatar.cc/150?u=adesua' },
@@ -39,7 +36,7 @@ const ghostUsers = [
 
 export default async function handler(req, res) {
   try {
-    // 4. FETCH TRENDING TIKTOK
+    // 4. FETCH FROM APIFY (Using the direct URL from your screenshot)
     const APIFY_URL = `https://api.apify.com/v2/acts/clockworks~tiktok-scraper/run-sync-get-dataset-items?token=${process.env.APIFY_TOKEN}`;
     
     const apifyResponse = await fetch(APIFY_URL, {
@@ -47,55 +44,55 @@ export default async function handler(req, res) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         "hashtags": ["trending"], 
-        "resultsPerPage": 1,
-        "shouldDownloadVideos": false
+        "resultsPerPage": 1
       })
     });
 
     const data = await apifyResponse.json();
 
-    if (!data || !Array.isArray(data) || data.length === 0) {
-      return res.status(200).json({ success: false, message: "No data from TikTok." });
+    if (!data || data.length === 0) {
+      return res.status(200).json({ success: false, message: "No data found on Apify." });
     }
 
     const item = data[0];
-    // This priority list ensures we get a playable video file, not an HTML page
-    const videoUrl = item.videoMeta?.downloadAddr || item.videoMeta?.playAddr || item.webVideoUrl;
+    
+    // 5. EXTRACT THE DIRECT VIDEO (Using webVideoUrl from your screenshot)
+    const tiktokVideo = item.webVideoUrl;
 
-    if (!videoUrl) {
-      return res.status(200).json({ success: false, message: "No valid video URL found." });
+    if (!tiktokVideo) {
+      return res.status(200).json({ success: false, message: "No video URL in the JSON." });
     }
 
-    // 5. PERMANENT HOSTING VIA CLOUDINARY
-    const uploadResponse = await cloudinary.uploader.upload(videoUrl, {
+    // 6. UPLOAD TO CLOUDINARY (This makes the link permanent so it doesn't expire)
+    const upload = await cloudinary.uploader.upload(tiktokVideo, {
       resource_type: 'video',
-      folder: 'bossnet_reels',
+      folder: 'bossnet_reels'
     });
 
-    // 6. ASSIGN TO PROFESSIONAL GHOST USER
+    // 7. PICK A GHOST USER & SAVE TO FIREBASE
     const randomUser = ghostUsers[Math.floor(Math.random() * ghostUsers.length)];
 
-    // 7. SAVE TO FIREBASE
-    const postData = {
+    const finalPost = {
       authorName: randomUser.name,
       authorAvatar: randomUser.avatar,
-      videoUrl: uploadResponse.secure_url,
-      caption: item.text || "Trending on #Bossnet",
-      likes: Math.floor(Math.random() * 1000) + 100,
-      createdAt: new Date().toISOString(),
+      videoUrl: upload.secure_url,
+      caption: item.text || "New trend alert! #Bossnet",
+      likes: item.diggCount || Math.floor(Math.random() * 500),
+      createdAt: new Date().toISOString()
     };
 
-    await db.collection('posts').add(postData);
+    // MAKE SURE THIS COLLECTION NAME MATCHES YOUR APP (e.g., 'posts' or 'reels')
+    await db.collection('posts').add(finalPost);
 
     return res.status(200).json({ 
       success: true, 
-      message: "Victory! Professional post live.",
-      postedBy: randomUser.name,
-      video: uploadResponse.secure_url 
+      message: "Victory! Post is now live on your reels page.",
+      video: upload.secure_url,
+      postedBy: randomUser.name
     });
 
   } catch (error) {
-    console.error("Critical Error:", error);
     return res.status(500).json({ success: false, error: error.message });
   }
 }
+
