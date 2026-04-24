@@ -1,5 +1,7 @@
 import { v2 as cloudinary } from 'cloudinary';
+import { v2 as cloudinary } from 'cloudinary';
 import admin from 'firebase-admin';
+import fetch from 'node-fetch'; // Add this line
 
 // 1. Setup Cloudinary using the URL variable you added
 cloudinary.config({
