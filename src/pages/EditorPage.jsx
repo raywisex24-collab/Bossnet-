@@ -1,40 +1,47 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Music, Smile, Type, Volume2, VolumeX, Download, ChevronRight, Plus, Scissors, X, Trash2 } from 'lucide-react';
+import { db, auth } from '../firebase'; // Ensure your firebase path is correct
+import { collection, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
+import { ArrowLeft, Music, Smile, Type, Volume2, VolumeX, Download, ChevronRight, Plus, Scissors, X, Loader } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Picker from '@emoji-mart/react';
 import data from '@emoji-mart/data';
+import Swal from 'sweetalert2';
 
 const EditorPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // State for multiple media items (videos or photos)
+  // Cloudinary Config from your Upload Page
+  const CLOUDINARY_CLOUD_NAME = "di0zt85jy";
+  const CLOUDINARY_UPLOAD_PRESET = "bossnet_uploads";
+
   const [mediaList, setMediaList] = useState([]);
   const [activeIndex, setActiveIndex] = useState(0);
-  
   const [step, setStep] = useState('edit'); 
   const [isMuted, setIsMuted] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
   const [overlays, setOverlays] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
   const [currentText, setCurrentText] = useState('');
+  const [caption, setCaption] = useState('');
+  const [loading, setLoading] = useState(false);
   
   const videoRef = useRef(null);
 
-  // Load initial video from navigation
   useEffect(() => {
     if (location.state?.videoUrl && mediaList.length === 0) {
-      setMediaList([{ url: location.state.videoUrl, type: 'video' }]);
+      // If coming from upload page, we convert URL back to a reference if possible or store as object
+      setMediaList([{ url: location.state.videoUrl, type: 'video', file: null }]);
     }
   }, [location.state]);
 
-  // Handle adding more videos or photos
   const handleAddMedia = (e) => {
     const files = Array.from(e.target.files);
     const newMedia = files.map(file => ({
       url: URL.createObjectURL(file),
-      type: file.type.startsWith('video') ? 'video' : 'image'
+      type: file.type.startsWith('video') ? 'video' : 'image',
+      file: file // Storing the actual file for upload later
     }));
     setMediaList([...mediaList, ...newMedia]);
   };
@@ -43,6 +50,64 @@ const EditorPage = () => {
     const updated = mediaList.filter((_, i) => i !== index);
     setMediaList(updated);
     if (activeIndex >= updated.length) setActiveIndex(Math.max(0, updated.length - 1));
+  };
+
+  // --- UPLOAD LOGIC FROM YOUR UPLOAD PAGE ---
+  const handleFinalUpload = async () => {
+    if (mediaList.length === 0) return;
+    setLoading(true);
+
+    try {
+      const user = auth.currentUser;
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      const userData = userDoc.data();
+
+      const uploadPromises = mediaList.map(async (item) => {
+        // If we don't have the file object (initial redirect), we fetch the blob
+        let fileToUpload = item.file;
+        if (!fileToUpload) {
+          const response = await fetch(item.url);
+          fileToUpload = await response.blob();
+        }
+
+        const formData = new FormData();
+        formData.append("file", fileToUpload);
+        formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+        const resourceType = item.type;
+        
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`, {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error?.message || "Upload failed");
+        return { url: data.secure_url, type: resourceType };
+      });
+
+      const uploadedAssets = await Promise.all(uploadPromises);
+      const firstVideo = uploadedAssets.find(asset => asset.type === 'video');
+      const firstImage = uploadedAssets.find(asset => asset.type === 'image');
+
+      await addDoc(collection(db, "videos"), {
+        userId: user.uid,
+        username: userData?.username || "Raywise",
+        userProfilePic: userData?.profilePic || "",
+        caption: caption,
+        likes: 0,
+        createdAt: serverTimestamp(),
+        videoUrl: firstVideo ? firstVideo.url : "", 
+        thumbnail: firstImage ? firstImage.url : (firstVideo ? firstVideo.url.replace('.mp4', '.jpg') : ""),
+        media: uploadedAssets, 
+      });
+
+      Swal.fire({ title: 'POSTED!', icon: 'success', background: '#111', color: '#fff', timer: 1500 });
+      navigate('/reels');
+    } catch (err) {
+      Swal.fire({ title: 'UPLOAD ERROR', text: err.message, icon: 'error', background: '#222', color: '#fff' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const addEmoji = (emoji) => {
@@ -58,18 +123,25 @@ const EditorPage = () => {
     }
   };
 
-  if (step === 'share') return <ShareScreen onBack={() => setStep('edit')} mediaList={mediaList} navigate={navigate} />;
+  if (step === 'share') return (
+    <ShareScreen 
+      onBack={() => setStep('edit')} 
+      mediaList={mediaList} 
+      caption={caption} 
+      setCaption={setCaption} 
+      onUpload={handleFinalUpload} 
+      loading={loading}
+    />
+  );
 
   return (
     <div style={containerStyle}>
-      {/* Header */}
       <div style={glassHeader}>
         <ArrowLeft onClick={() => navigate(-1)} style={{ cursor: 'pointer' }} />
         <span style={{ fontWeight: '800', fontSize: '12px', letterSpacing: '1px' }}>BOSSNET STUDIO</span>
         <div style={{ width: 24 }} />
       </div>
 
-      {/* Preview Area - Adjusted height so it's not full screen */}
       <div style={previewArea}>
         {mediaList.length > 0 ? (
           mediaList[activeIndex].type === 'video' ? (
@@ -87,7 +159,6 @@ const EditorPage = () => {
           <div style={{ color: '#444' }}>No media added</div>
         )}
         
-        {/* Overlays */}
         {overlays.map(item => (
           <motion.div drag key={item.id} style={{ position: 'absolute', zIndex: 10, fontSize: item.type === 'emoji' ? '50px' : '24px', fontWeight: 'bold', color: 'white' }}>
             {item.content}
@@ -101,21 +172,15 @@ const EditorPage = () => {
         )}
       </div>
 
-      {/* NEW: Multi-Media Timeline Strip */}
       <div style={timelineContainer}>
         <div style={mediaScroll}>
-          {/* Add Button */}
           <label style={addCard}>
             <Plus size={24} color="#0095f6" />
             <input type="file" multiple hidden onChange={handleAddMedia} accept="video/*,image/*" />
           </label>
-
           {mediaList.map((item, i) => (
             <div key={i} style={{ position: 'relative' }}>
-              <div 
-                onClick={() => setActiveIndex(i)}
-                style={{ ...thumbCard, border: activeIndex === i ? '2px solid #0095f6' : '1px solid #333' }}
-              >
+              <div onClick={() => setActiveIndex(i)} style={{ ...thumbCard, border: activeIndex === i ? '2px solid #0095f6' : '1px solid #333' }}>
                 {item.type === 'video' ? <video src={item.url} style={thumbImg} /> : <img src={item.url} style={thumbImg} />}
               </div>
               <button onClick={() => removeMedia(i)} style={deleteBtn}><X size={10} /></button>
@@ -124,23 +189,20 @@ const EditorPage = () => {
         </div>
       </div>
 
-      {/* Controls */}
       <div style={controlGrid}>
-        <ToolBtn icon={<Scissors />} label="Trim" onClick={() => alert("Trim tool active: Select start/end points")} />
+        <ToolBtn icon={<Scissors />} label="Trim" onClick={() => alert("Trim tool ready")} />
         <ToolBtn icon={<Smile />} label="Stickers" onClick={() => setShowPicker(!showPicker)} />
         <ToolBtn icon={<Type />} label="Text" onClick={() => setIsTyping(true)} />
         <ToolBtn icon={isMuted ? <VolumeX /> : <Volume2 />} label="Sound" onClick={() => setIsMuted(!isMuted)} />
         <ToolBtn icon={<Music />} label="Music" onClick={() => {}} />
       </div>
 
-      {/* Footer */}
       <div style={footer}>
         <button style={nextBtn} onClick={() => setStep('share')}>
           Next <ChevronRight size={18} />
         </button>
       </div>
 
-      {/* Emoji Drawer */}
       <AnimatePresence>
         {showPicker && (
           <motion.div initial={{ y: 300 }} animate={{ y: 0 }} exit={{ y: 300 }} style={drawerStyle}>
@@ -152,7 +214,8 @@ const EditorPage = () => {
   );
 };
 
-const ShareScreen = ({ onBack, mediaList, navigate }) => (
+// --- SHARE SCREEN COMPONENT ---
+const ShareScreen = ({ onBack, mediaList, caption, setCaption, onUpload, loading }) => (
   <div style={containerStyle}>
     <div style={glassHeader}><ArrowLeft onClick={onBack} /><b>Share</b><div/></div>
     <div style={{ padding: '20px' }}>
@@ -160,13 +223,19 @@ const ShareScreen = ({ onBack, mediaList, navigate }) => (
         <div style={{ width: 80, height: 120, background: '#111', borderRadius: '10px', overflow: 'hidden' }}>
             {mediaList[0]?.type === 'video' ? <video src={mediaList[0].url} style={{width:'100%', height:'100%', objectFit:'cover'}}/> : <img src={mediaList[0]?.url} style={{width:'100%', height:'100%', objectFit:'cover'}}/>}
         </div>
-        <textarea placeholder="Write a caption..." style={{ background: 'none', border: 'none', color: '#fff', flex: 1, outline: 'none' }} />
+        <textarea 
+          placeholder="Write a caption..." 
+          value={caption}
+          onChange={(e) => setCaption(e.target.value)}
+          style={{ background: 'none', border: 'none', color: '#fff', flex: 1, outline: 'none', resize: 'none' }} 
+        />
       </div>
       <button 
-        style={shareBtn} 
-        onClick={() => navigate('/reels')} // Now correctly navigates to /reels
+        style={{...shareBtn, opacity: loading ? 0.7 : 1}} 
+        onClick={onUpload}
+        disabled={loading}
       >
-        Share to Reels
+        {loading ? <Loader className="animate-spin mx-auto" /> : "Share to Reels"}
       </button>
     </div>
   </div>
