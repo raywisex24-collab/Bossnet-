@@ -98,7 +98,11 @@ const Settings = () => {
           label: "Theme",
           onClick: () => navigate('/settings/theme') 
         },
-        { icon: <Languages size={22} strokeWidth={2.5}/>, label: "Language" },
+{ 
+  icon: <Languages size={22} strokeWidth={2.5}/>, 
+  label: "Language",
+  onClick: () => navigate('/settings/language')
+},
         { icon: <Zap size={22} strokeWidth={2.5}/>, label: "Data saver" },
         { icon: <Smartphone size={22} strokeWidth={2.5}/>, label: "Apps and websites" },
         { icon: <HardDrive size={22} strokeWidth={2.5}/>, label: "Download data" },

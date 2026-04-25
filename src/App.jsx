@@ -1,3 +1,4 @@
+import './i18n'; // Make sure this path matches where you saved the file
 import { Analytics } from '@vercel/analytics/react';
 import React, { useEffect } from 'react'; 
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
@@ -24,6 +25,7 @@ import Chatbox from './pages/chatbox';
 import ChatSettings from './pages/ChatSettings'; // ✅ Corrected path
 import Profile from './pages/Profile'; 
 import PersonalProfile from './pages/PersonalProfile';
+import LanguageSettings from './pages/LanguageSettings';
 import Settings from './pages/Settings'; 
 import ThemeSettings from './pages/ThemeSettings'; 
 import DeleteAccount from './pages/DeleteAccount'; 
@@ -48,12 +50,12 @@ import IncomingCall from './pages/IncomingCall';
 const LayoutWrapper = ({ children }) => {
   const location = useLocation();
 
-  const hideAllUIOn = [
-    '/', '/pre-splash', '/splash', '/login', '/signup', '/verify', 
-    '/forgot-password', '/onboarding', '/chatbox', '/upload-post',  
-    '/upload-reel', '/settings', '/settings/theme', '/delete-account', '/incoming-call',
-    '/reels', '/editor' 
-  ];
+const hideAllUIOn = [
+  '/', '/pre-splash', '/splash', '/login', '/signup', '/verify', 
+  '/forgot-password', '/onboarding', '/chatbox', '/upload-post',  
+  '/upload-reel', '/settings', '/settings/theme', '/settings/language', '/delete-account', '/incoming-call',
+  '/reels', '/editor' 
+];
 
   const hideHeaderOnlyOn = [
     '/me', '/reels', '/search', '/notifications' 
@@ -139,9 +141,10 @@ function App() {
             <Route path="/edit-post/:postId" element={<ProtectedRoute><EditPost /></ProtectedRoute>} />
             <Route path="/list/:userId/:type" element={<ProtectedRoute><FollowList /></ProtectedRoute>} />
             <Route path="/me" element={<ProtectedRoute><PersonalProfile /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-            <Route path="/settings/theme" element={<ProtectedRoute><ThemeSettings /></ProtectedRoute>} />
-            <Route path="/delete-account" element={<ProtectedRoute><DeleteAccount /></ProtectedRoute>} />
+<Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+<Route path="/settings/theme" element={<ProtectedRoute><ThemeSettings /></ProtectedRoute>} />
+<Route path="/settings/language" element={<ProtectedRoute><LanguageSettings /></ProtectedRoute>} /> {/* New Route */}
+<Route path="/delete-account" element={<ProtectedRoute><DeleteAccount /></ProtectedRoute>} />
             <Route path="/profile/:userId" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/chatbox" element={<ProtectedRoute><Chatbox /></ProtectedRoute>} />
             
