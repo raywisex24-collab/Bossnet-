@@ -90,12 +90,12 @@ export default function Verify() {
           
           <button 
             onClick={() => navigate(-1)}
-            className="mb-6 w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-blue-600 text-white shadow-lg transition-transform active:scale-90"
+            className="mb-6 w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-blue-600 text-boss-text shadow-lg transition-transform active:scale-90"
           >
             <span className="text-2xl">←</span>
           </button>
 
-          <h2 className="text-2xl font-bold text-white mb-2 text-center italic tracking-tight">SECURITY CHECK</h2>
+          <h2 className="text-2xl font-bold text-boss-text mb-2 text-center italic tracking-tight">SECURITY CHECK</h2>
           <p className="text-gray-400 mb-8 text-sm text-center">
             Verification code sent to <br/>
             <span className="text-blue-400 font-medium">{email}</span>
@@ -109,14 +109,14 @@ export default function Verify() {
   value={userCode}
   onChange={(e) => setUserCode(e.target.value.replace(/\D/g, ''))}
   // UPDATED CLASSNAME BELOW
-  className="w-full py-5 text-center text-5xl font-mono tracking-[0.15em] bg-[#1a1a20]/90 border-2 border-blue-500/50 rounded-3xl text-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none transition-all shadow-[0_0_20px_rgba(59,130,246,0.2)]"
+  className="w-full py-5 text-center text-5xl font-mono tracking-[0.15em] bg-[#1a1a20]/90 border-2 border-blue-500/50 rounded-3xl text-boss-text focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none transition-all shadow-[0_0_20px_rgba(59,130,246,0.2)]"
   maxLength="6"
   required
 />
 
             <button
               type="submit"
-              className="w-full h-14 bg-gradient-to-r from-purple-600 to-blue-500 text-white font-black rounded-full shadow-lg active:scale-95 transition-transform uppercase tracking-widest"
+              className="w-full h-14 bg-gradient-to-r from-purple-600 to-blue-500 text-boss-text font-black rounded-full shadow-lg active:scale-95 transition-transform uppercase tracking-widest"
             >
               Confirm Code
             </button>

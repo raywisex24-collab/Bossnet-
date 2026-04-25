@@ -76,7 +76,7 @@ export const NotificationProvider = ({ children }) => {
                </div>
                
                {/* User's Name */}
-               <p className="text-[14px] text-white font-bold truncate">
+               <p className="text-[14px] text-boss-text font-bold truncate">
                  {latestNotif.fromUsername || "Someone"}
                </p>
                

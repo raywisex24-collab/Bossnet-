@@ -51,7 +51,7 @@ export default function VideoCall() {
   };
 
   return (
-    <div className="w-screen h-[100dvh] bg-black overflow-hidden flex items-center justify-center">
+    <div className="w-screen h-[100dvh] bg-boss-bg overflow-hidden flex items-center justify-center">
       <div 
         ref={myMeeting} 
         className="w-full h-full"

@@ -56,7 +56,7 @@ export default function EmailUpdate() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans">
+    <div className="min-h-screen bg-boss-bg text-boss-text font-sans">
       {/* HEADER */}
       <div className="flex items-center p-4 border-b border-white/10">
         <ArrowLeft onClick={() => navigate(-1)} className="cursor-pointer mr-6" />

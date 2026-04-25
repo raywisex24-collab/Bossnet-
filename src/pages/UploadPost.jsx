@@ -111,8 +111,8 @@ export default function UploadPost() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans overflow-hidden">
-      <header className="h-14 flex items-center justify-between px-4 border-b border-zinc-900 bg-black sticky top-0 z-50">
+    <div className="min-h-screen bg-boss-bg text-boss-text font-sans overflow-hidden">
+      <header className="h-14 flex items-center justify-between px-4 border-b border-zinc-900 bg-boss-bg sticky top-0 z-50">
         {step === 1 ? (
           <X onClick={() => navigate('/feed')} className="cursor-pointer" />
         ) : (
@@ -121,7 +121,7 @@ export default function UploadPost() {
         
         {step === 1 && (
           <div className="flex gap-4 font-black uppercase text-sm tracking-widest text-zinc-500">
-            <span className="text-white border-b-2 border-white pb-1">POST</span>
+            <span className="text-boss-text border-b-2 border-white pb-1">POST</span>
             <span onClick={() => navigate('/upload-reel')} className="cursor-pointer">REEL</span>
             <span className="opacity-30">STORY</span>
           </div>
@@ -142,7 +142,7 @@ export default function UploadPost() {
 
       {step === 1 && (
         <div className="flex flex-col h-[calc(100vh-56px)]">
-          <div className="flex-1 bg-black flex items-center justify-center overflow-hidden border-b border-zinc-900">
+          <div className="flex-1 bg-boss-bg flex items-center justify-center overflow-hidden border-b border-zinc-900">
             {previewImage ? (
               <img src={previewImage} className="max-h-full w-full object-contain" alt="Preview" />
             ) : (
@@ -159,7 +159,7 @@ export default function UploadPost() {
                 setIsMultiple(!isMultiple);
                 if(isMultiple) { setSelectedImages([]); setImageFiles([]); }
               }}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black transition-all ${isMultiple ? 'bg-[#1877F2] text-white' : 'bg-zinc-800 text-zinc-400'}`}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black transition-all ${isMultiple ? 'bg-[#1877F2] text-boss-text' : 'bg-zinc-800 text-zinc-400'}`}
             >
               SELECT MULTIPLE
             </button>
@@ -185,7 +185,7 @@ export default function UploadPost() {
       )}
 
       {step === 2 && (
-        <div className="flex flex-col h-[calc(100vh-56px)] p-4 bg-black">
+        <div className="flex flex-col h-[calc(100vh-56px)] p-4 bg-boss-bg">
           <div className="flex-1 bg-zinc-900 rounded-3xl overflow-hidden mb-8 border border-zinc-800 shadow-2xl">
              <img src={previewImage} className="w-full h-full object-contain" alt="Editing" />
           </div>
@@ -214,7 +214,7 @@ export default function UploadPost() {
             </div>
             <textarea 
               placeholder="Write a caption..." 
-              className="bg-transparent w-full h-20 outline-none resize-none pt-2 text-sm text-white"
+              className="bg-transparent w-full h-20 outline-none resize-none pt-2 text-sm text-boss-text"
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
             />

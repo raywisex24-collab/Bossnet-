@@ -256,7 +256,7 @@ export default function Feed() {
   };
 
   return (
-    <div className="w-full bg-black text-[#e4e6eb] min-h-screen">
+    <div className="w-full bg-boss-bg text-[#e4e6eb] min-h-screen">
       <main className="w-full max-w-lg mx-auto pb-10">
         {posts.map((post) => {
           const isLiked = post.likes ? post.likes.includes(auth.currentUser?.uid) : false;
@@ -288,7 +288,7 @@ export default function Feed() {
                   />
                   <div>
                     <div className="flex items-center gap-1">
-                      <h4 className="font-bold text-sm text-white">{post.username}</h4>
+                      <h4 className="font-bold text-sm text-boss-text">{post.username}</h4>
                       <VerifiedBadge isVerified={post.isVerified} />
                     </div>
                     <div className="flex items-center gap-1 text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
@@ -309,16 +309,16 @@ export default function Feed() {
                         <button onClick={() => { if(window.confirm("Delete post?")) deleteDoc(doc(db, "posts", post.id)) }} className="w-full px-4 py-3 flex items-center gap-3 text-red-500 hover:bg-white/5 text-xs font-bold transition-colors">
                           <Trash2 size={16} /> Delete Post
                         </button>
-                        <button onClick={() => handleHidePost(post.id, post.hidden)} className="w-full px-4 py-3 flex items-center gap-3 text-white hover:bg-white/5 text-xs font-bold transition-colors">
+                        <button onClick={() => handleHidePost(post.id, post.hidden)} className="w-full px-4 py-3 flex items-center gap-3 text-boss-text hover:bg-white/5 text-xs font-bold transition-colors">
                           {post.hidden ? <Eye size={16} /> : <EyeOff size={16} />} {post.hidden ? "Show Post" : "Hide Post"}
                         </button>
-                        <button onClick={() => copyPostLink(post)} className="w-full px-4 py-3 flex items-center gap-3 text-white hover:bg-white/5 text-xs font-bold transition-colors">
+                        <button onClick={() => copyPostLink(post)} className="w-full px-4 py-3 flex items-center gap-3 text-boss-text hover:bg-white/5 text-xs font-bold transition-colors">
                           <Link size={16} /> Copy link of post
                         </button>
-                        <button onClick={() => navigate(`/edit-post/${post.id}`)} className="w-full px-4 py-3 flex items-center gap-3 text-white hover:bg-white/5 text-xs font-bold transition-colors">
+                        <button onClick={() => navigate(`/edit-post/${post.id}`)} className="w-full px-4 py-3 flex items-center gap-3 text-boss-text hover:bg-white/5 text-xs font-bold transition-colors">
                           <Edit size={16} /> Edit post
                         </button>
-                        <button onClick={() => handleToggleComments(post.id, post.commentsDisabled)} className="w-full px-4 py-3 flex items-center gap-3 text-white hover:bg-white/5 text-xs font-bold transition-colors">
+                        <button onClick={() => handleToggleComments(post.id, post.commentsDisabled)} className="w-full px-4 py-3 flex items-center gap-3 text-boss-text hover:bg-white/5 text-xs font-bold transition-colors">
                           <MessageCircleOff size={16} /> Turn off comments
                         </button>
                       </>
@@ -327,22 +327,22 @@ export default function Feed() {
                         <button onClick={() => handleReport(post)} className="w-full px-4 py-3 flex items-center gap-3 text-red-500 hover:bg-white/5 text-xs font-bold">
                           <Flag size={16} /> Report post
                         </button>
-                        <button onClick={() => { /* Logic for actual gallery save usually requires a library or server-side proxy */ alert("Saving to gallery...") }} className="w-full px-4 py-3 flex items-center gap-3 text-white hover:bg-white/5 text-xs font-bold">
+                        <button onClick={() => { /* Logic for actual gallery save usually requires a library or server-side proxy */ alert("Saving to gallery...") }} className="w-full px-4 py-3 flex items-center gap-3 text-boss-text hover:bg-white/5 text-xs font-bold">
                           <Bookmark size={16} /> Save to gallery
                         </button>
-                        <button className="w-full px-4 py-3 flex items-center gap-3 text-white hover:bg-white/5 text-xs font-bold">
+                        <button className="w-full px-4 py-3 flex items-center gap-3 text-boss-text hover:bg-white/5 text-xs font-bold">
                           <BellOff size={16} /> Turn off notifications
                         </button>
-                        <button className="w-full px-4 py-3 flex items-center gap-3 text-white hover:bg-white/5 text-xs font-bold">
+                        <button className="w-full px-4 py-3 flex items-center gap-3 text-boss-text hover:bg-white/5 text-xs font-bold">
                           {userData?.following?.includes(post.userId) ? <UserX size={16}/> : <UserPlus size={16}/>} {userData?.following?.includes(post.userId) ? "Unfollow" : "Follow"} user
                         </button>
-                        <button onClick={() => handleHidePost(post.id, false)} className="w-full px-4 py-3 flex items-center gap-3 text-white hover:bg-white/5 text-xs font-bold">
+                        <button onClick={() => handleHidePost(post.id, false)} className="w-full px-4 py-3 flex items-center gap-3 text-boss-text hover:bg-white/5 text-xs font-bold">
                           <EyeOff size={16} /> Hide the post
                         </button>
-                        <button onClick={() => copyPostLink(post)} className="w-full px-4 py-3 flex items-center gap-3 text-white hover:bg-white/5 text-xs font-bold">
+                        <button onClick={() => copyPostLink(post)} className="w-full px-4 py-3 flex items-center gap-3 text-boss-text hover:bg-white/5 text-xs font-bold">
                           <Link size={16} /> Copy the link
                         </button>
-                        <button onClick={() => handleRepost(post)} className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-white/5 text-xs font-bold ${isRepostedByUser ? 'text-blue-500' : 'text-white'}`}>
+                        <button onClick={() => handleRepost(post)} className={`w-full px-4 py-3 flex items-center gap-3 hover:bg-white/5 text-xs font-bold ${isRepostedByUser ? 'text-blue-500' : 'text-boss-text'}`}>
                           <Repeat2 size={16} /> {isRepostedByUser ? "Unrepost" : "Repost"}
                         </button>
                       </>
@@ -409,14 +409,14 @@ export default function Feed() {
 
       {/* REPORT MODAL */}
       {reportingPost && (
-        <div className="fixed inset-0 z-[500] bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[500] bg-boss-bg/90 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-[#1c1c1e] w-full max-w-sm rounded-[30px] p-6 border border-white/10 shadow-2xl">
-            <h3 className="text-white font-bold text-lg mb-2">Report Content</h3>
+            <h3 className="text-boss-text font-bold text-lg mb-2">Report Content</h3>
             <p className="text-zinc-400 text-xs mb-4">Explain why you are reporting @{reportingPost.username}'s post.</p>
             <textarea 
               value={reportMessage} 
               onChange={(e) => setReportMessage(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm h-32 focus:outline-none focus:border-blue-500 mb-4" 
+              className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-boss-text text-sm h-32 focus:outline-none focus:border-blue-500 mb-4" 
               placeholder="Your message..."
             />
             <div className="flex gap-3">
@@ -429,10 +429,10 @@ export default function Feed() {
 
       {/* COMMENT PANEL */}
       {activePostForComments && (
-        <div className="fixed inset-0 z-[300] bg-black/90 backdrop-blur-md flex flex-col justify-end">
+        <div className="fixed inset-0 z-[300] bg-boss-bg/90 backdrop-blur-md flex flex-col justify-end">
           <div className="bg-[#1c1c1e] w-full max-h-[85vh] rounded-t-[30px] flex flex-col border-t border-white/10 animate-in slide-in-from-bottom duration-300">
             <div className="flex items-center justify-between p-5 border-b border-white/5">
-              <h3 className="font-bold text-lg text-white">Conversation</h3>
+              <h3 className="font-bold text-lg text-boss-text">Conversation</h3>
               <button onClick={() => setActivePostForComments(null)} className="p-2 bg-white/5 rounded-full text-zinc-400"><X size={20}/></button>
             </div>
 
@@ -475,9 +475,9 @@ export default function Feed() {
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
                 placeholder="Write a reply..." 
-                className="flex-1 bg-white/5 border border-white/10 rounded-full px-5 py-3 text-sm text-white focus:outline-none focus:border-blue-500/50"
+                className="flex-1 bg-white/5 border border-white/10 rounded-full px-5 py-3 text-sm text-boss-text focus:outline-none focus:border-blue-500/50"
               />
-              <button type="submit" className="p-3 bg-blue-600 rounded-full text-white active:scale-90 transition-transform shadow-lg shadow-blue-600/20"><Send size={18} /></button>
+              <button type="submit" className="p-3 bg-blue-600 rounded-full text-boss-text active:scale-90 transition-transform shadow-lg shadow-blue-600/20"><Send size={18} /></button>
             </form>
           </div>
         </div>
@@ -485,7 +485,7 @@ export default function Feed() {
 
       {/* Zoom Overlay */}
       {zoomedImage && (
-        <div className="fixed inset-0 z-[400] bg-black/98 flex items-center justify-center p-2" onClick={() => setZoomedImage(null)}>
+        <div className="fixed inset-0 z-[400] bg-boss-bg/98 flex items-center justify-center p-2" onClick={() => setZoomedImage(null)}>
           <img src={zoomedImage} className="max-w-full max-h-screen object-contain" alt="" />
         </div>
       )}

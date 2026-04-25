@@ -109,9 +109,9 @@ export default function PersonalProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans pb-20 select-none">
+    <div className="min-h-screen bg-boss-bg text-boss-text font-sans pb-20 select-none">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 sticky top-0 bg-black z-50 border-b border-white/5">
+      <div className="flex items-center justify-between p-4 sticky top-0 bg-boss-bg z-50 border-b border-white/5">
         <div className="flex items-center gap-6">
           <ArrowLeft onClick={() => navigate(-1)} className="cursor-pointer" />
           {/* UPDATED: Added the VerifiedBadge logic here */}
@@ -206,8 +206,8 @@ export default function PersonalProfile() {
                 
                 {deletingReelId === reel.id && (
                   <div className="absolute inset-0 bg-red-600/90 z-20 flex flex-col items-center justify-center animate-in fade-in zoom-in duration-200">
-                    <Trash2 onClick={(e) => { e.stopPropagation(); deleteReel(reel.id); }} size={32} className="text-white mb-2" />
-                    <button onClick={(e) => { e.stopPropagation(); setDeletingReelId(null); }} className="text-[10px] font-bold uppercase text-white border border-white/30 px-2 py-1 rounded">Cancel</button>
+                    <Trash2 onClick={(e) => { e.stopPropagation(); deleteReel(reel.id); }} size={32} className="text-boss-text mb-2" />
+                    <button onClick={(e) => { e.stopPropagation(); setDeletingReelId(null); }} className="text-[10px] font-bold uppercase text-boss-text border border-white/30 px-2 py-1 rounded">Cancel</button>
                   </div>
                 )}
               </div>
@@ -228,8 +228,8 @@ export default function PersonalProfile() {
                 
                 {deletingPostId === post.id && (
                   <div className="absolute inset-0 bg-red-600/90 z-20 flex flex-col items-center justify-center animate-in fade-in zoom-in duration-200">
-                    <Trash2 onClick={(e) => { e.stopPropagation(); deletePost(post.id); }} size={28} className="text-white mb-2" />
-                    <button onClick={(e) => { e.stopPropagation(); setDeletingPostId(null); }} className="text-[8px] font-bold uppercase text-white border border-white/30 px-2 py-0.5 rounded">Cancel</button>
+                    <Trash2 onClick={(e) => { e.stopPropagation(); deletePost(post.id); }} size={28} className="text-boss-text mb-2" />
+                    <button onClick={(e) => { e.stopPropagation(); setDeletingPostId(null); }} className="text-[8px] font-bold uppercase text-boss-text border border-white/30 px-2 py-0.5 rounded">Cancel</button>
                   </div>
                 )}
               </div>
@@ -240,7 +240,7 @@ export default function PersonalProfile() {
 
       {showSheet && (
         <div 
-          className="fixed inset-0 z-[600] flex flex-col justify-end bg-black/60 backdrop-blur-sm" 
+          className="fixed inset-0 z-[600] flex flex-col justify-end bg-boss-bg/60 backdrop-blur-sm" 
           onClick={() => setShowSheet(false)}
         >
           <div 
@@ -260,26 +260,26 @@ export default function PersonalProfile() {
       )}
 
       {selectedPost && (
-        <div className="fixed inset-0 z-[700] bg-black flex flex-col items-center justify-center p-4">
-          <button onClick={() => setSelectedPost(null)} className="absolute top-10 left-6 z-[800] text-white p-2 bg-black/40 rounded-full"><X size={28} /></button>
+        <div className="fixed inset-0 z-[700] bg-boss-bg flex flex-col items-center justify-center p-4">
+          <button onClick={() => setSelectedPost(null)} className="absolute top-10 left-6 z-[800] text-boss-text p-2 bg-boss-bg/40 rounded-full"><X size={28} /></button>
           {selectedPost.image ? (
             <img src={selectedPost.image} className="max-w-full max-h-[80vh] object-contain rounded-lg" alt="post" />
           ) : (
-            <div className="text-white p-10 bg-zinc-900 rounded-lg">{selectedPost.text}</div>
+            <div className="text-boss-text p-10 bg-zinc-900 rounded-lg">{selectedPost.text}</div>
           )}
           <div className="mt-6 w-full max-w-md">
-            <p className="text-white font-bold">@{profileData?.username}</p>
+            <p className="text-boss-text font-bold">@{profileData?.username}</p>
             <p className="text-zinc-400 mt-2">{selectedPost.caption || selectedPost.text}</p>
           </div>
         </div>
       )}
 
       {selectedReelIndex !== null && userReels[selectedReelIndex] && (
-        <div className="fixed inset-0 z-[500] bg-black flex flex-col">
-          <button onClick={() => setSelectedReelIndex(null)} className="absolute top-10 left-6 z-[600] text-white p-2 bg-black/40 rounded-full"><ArrowLeft size={28} /></button>
+        <div className="fixed inset-0 z-[500] bg-boss-bg flex flex-col">
+          <button onClick={() => setSelectedReelIndex(null)} className="absolute top-10 left-6 z-[600] text-boss-text p-2 bg-boss-bg/40 rounded-full"><ArrowLeft size={28} /></button>
           <div className="h-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide">
             {userReels.map((reel, index) => (
-              <div key={reel.id} className="h-full w-full snap-start relative flex items-center justify-center bg-black">
+              <div key={reel.id} className="h-full w-full snap-start relative flex items-center justify-center bg-boss-bg">
                 {reel.videoUrl ? (
                   <video 
                     key={reel.id} 
@@ -292,12 +292,12 @@ export default function PersonalProfile() {
                   <div className="text-zinc-600">Video source missing</div>
                 )}
                 <div className="absolute right-4 bottom-32 flex flex-col gap-8 items-center z-[550]">
-                  <Heart size={34} strokeWidth={2.5} className="text-white drop-shadow-lg" />
-                  <MessageCircle size={34} strokeWidth={2.5} className="text-white drop-shadow-lg" />
-                  <Share2 size={34} strokeWidth={2.5} className="text-white drop-shadow-lg" />
+                  <Heart size={34} strokeWidth={2.5} className="text-boss-text drop-shadow-lg" />
+                  <MessageCircle size={34} strokeWidth={2.5} className="text-boss-text drop-shadow-lg" />
+                  <Share2 size={34} strokeWidth={2.5} className="text-boss-text drop-shadow-lg" />
                 </div>
                 <div className="absolute bottom-12 left-5 right-20 z-[550]">
-                  <p className="font-black text-lg text-white">@{profileData?.username}</p>
+                  <p className="font-black text-lg text-boss-text">@{profileData?.username}</p>
                   <p className="text-sm font-bold text-zinc-200 line-clamp-2">{reel.caption}</p>
                 </div>
               </div>

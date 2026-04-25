@@ -131,7 +131,7 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white p-6 font-sans select-none">
+    <div className="min-h-screen bg-boss-bg text-boss-text p-6 font-sans select-none">
       <div className="flex justify-between items-center mb-10">
         <h1 className="text-2xl font-black tracking-tight">Finish Profile</h1>
         <button onClick={handleFinish} disabled={loading || !isUsernameValid} className="text-[#0095f6] font-bold text-lg">
@@ -149,7 +149,7 @@ export default function Onboarding() {
             )}
           </div>
           <div className="absolute bottom-0 right-0 bg-[#0095f6] p-2 rounded-full border-4 border-black">
-            <Camera size={16} className="text-white" />
+            <Camera size={16} className="text-boss-text" />
           </div>
         </div>
       </div>

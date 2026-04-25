@@ -39,9 +39,9 @@ export default function FollowList() {
   );
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans">
+    <div className="min-h-screen bg-boss-bg text-boss-text font-sans">
       {/* Header */}
-      <div className="flex items-center p-4 border-b border-white/10 sticky top-0 bg-black z-10">
+      <div className="flex items-center p-4 border-b border-white/10 sticky top-0 bg-boss-bg z-10">
         <ArrowLeft onClick={() => navigate(-1)} className="cursor-pointer mr-8" />
         <h1 className="text-lg font-bold capitalize">{type}</h1>
       </div>

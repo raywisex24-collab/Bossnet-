@@ -104,16 +104,16 @@ export default function Notifications() {
   const getIcon = (type) => {
     switch (type) {
       case 'like': 
-      case 'reel_like': return <Heart size={10} className="text-white fill-red-500" />;
+      case 'reel_like': return <Heart size={10} className="text-boss-text fill-red-500" />;
       case 'comment': 
-      case 'reel_comment': return <MessageSquare size={10} className="text-white fill-blue-500" />;
-      case 'follow': return <UserPlus size={10} className="text-white fill-green-500" />;
-      case 'reshare': return <Repeat size={10} className="text-white text-emerald-400" />;
+      case 'reel_comment': return <MessageSquare size={10} className="text-boss-text fill-blue-500" />;
+      case 'follow': return <UserPlus size={10} className="text-boss-text fill-green-500" />;
+      case 'reshare': return <Repeat size={10} className="text-boss-text text-emerald-400" />;
       case 'save': 
-      case 'reel_save': return <Bookmark size={10} className="text-white fill-yellow-500" />;
-      case 'verified': return <CheckCircle size={10} className="text-white fill-blue-400" />;
-      case 'new_message': return <Mail size={10} className="text-white fill-indigo-500" />;
-      default: return <Bell size={10} className="text-white" />;
+      case 'reel_save': return <Bookmark size={10} className="text-boss-text fill-yellow-500" />;
+      case 'verified': return <CheckCircle size={10} className="text-boss-text fill-blue-400" />;
+      case 'new_message': return <Mail size={10} className="text-boss-text fill-indigo-500" />;
+      default: return <Bell size={10} className="text-boss-text" />;
     }
   };
 
@@ -124,9 +124,9 @@ export default function Notifications() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white pb-20">
+    <div className="min-h-screen bg-boss-bg text-boss-text pb-20">
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/5 px-4 h-14 flex items-center justify-between">
+      <div className="sticky top-0 z-50 bg-boss-bg/80 backdrop-blur-xl border-b border-white/5 px-4 h-14 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <button onClick={() => navigate(-1)} className="p-2 -ml-2">
             <ChevronLeft size={24} />
@@ -168,14 +168,14 @@ export default function Notifications() {
                   className="w-12 h-12 rounded-full object-cover border border-white/10" 
                   alt="" 
                 />
-                <div className="absolute -bottom-1 -right-1 p-1 rounded-full bg-black border border-white/10">
+                <div className="absolute -bottom-1 -right-1 p-1 rounded-full bg-boss-bg border border-white/10">
                   {getIcon(notif.type)}
                 </div>
               </div>
 
               <div className="flex-1">
                 <div className="flex flex-wrap items-center gap-1 leading-snug">
-                  <span className="font-bold text-white">{notif.fromUsername || 'BossNet System'}</span>
+                  <span className="font-bold text-boss-text">{notif.fromUsername || 'BossNet System'}</span>
                   {notif.isVerified && <VerifiedBadge isVerified={true} />} 
                   
                   <span className="text-zinc-400"> 

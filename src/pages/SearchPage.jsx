@@ -37,12 +37,12 @@ export default function SearchPage() {
   }, [searchTerm]);
 
   return (
-    <div className="fixed inset-0 bg-black z-[200] overflow-y-auto">
+    <div className="fixed inset-0 bg-boss-bg z-[200] overflow-y-auto">
       {/* 🟢 Top-Pinned Search Bar */}
-      <div className="sticky top-0 bg-black/80 backdrop-blur-xl border-b border-white/5 px-4 pt-4 pb-4 flex items-center gap-3">
+      <div className="sticky top-0 bg-boss-bg/80 backdrop-blur-xl border-b border-white/5 px-4 pt-4 pb-4 flex items-center gap-3">
         <button 
           onClick={() => navigate(-1)} 
-          className="p-2 -ml-2 text-zinc-400 active:text-white transition-colors"
+          className="p-2 -ml-2 text-zinc-400 active:text-boss-text transition-colors"
         >
           <ChevronLeft size={24} />
         </button>
@@ -53,7 +53,7 @@ export default function SearchPage() {
             autoFocus
             type="text"
             placeholder="Search..."
-            className="w-full bg-zinc-900/50 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-white placeholder:text-zinc-600 focus:outline-none focus:border-blue-500 transition-all text-[16px]"
+            className="w-full bg-zinc-900/50 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-boss-text placeholder:text-zinc-600 focus:outline-none focus:border-blue-500 transition-all text-[16px]"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -78,7 +78,7 @@ export default function SearchPage() {
               </div>
               <div>
                 <div className="flex items-center gap-1">
-                  <p className="text-white font-bold tracking-tight">{user.username}</p>
+                  <p className="text-boss-text font-bold tracking-tight">{user.username}</p>
                   {user.isVerified && <BadgeCheck size={14} className="text-blue-500 fill-blue-500/20" />}
                 </div>
                 <p className="text-zinc-500 text-xs">{user.fullName || 'BossNet User'}</p>

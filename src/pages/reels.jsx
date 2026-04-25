@@ -240,7 +240,7 @@ const ReelItem = ({ post }) => {
 
   return (
     <div 
-      className="h-screen w-full snap-start relative bg-black flex items-center justify-center reel-container"
+      className="h-screen w-full snap-start relative bg-boss-bg flex items-center justify-center reel-container"
       onMouseDown={handleTouchStart}
       onMouseUp={handleTouchEnd}
       onTouchStart={handleTouchStart}
@@ -274,7 +274,7 @@ const ReelItem = ({ post }) => {
 
             {item.type === 'video' && !isPlaying && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="bg-black/20 p-5 rounded-full backdrop-blur-sm"><Play size={30} fill="white" color="white" className="ml-1" /></div>
+                <div className="bg-boss-bg/20 p-5 rounded-full backdrop-blur-sm"><Play size={30} fill="white" color="white" className="ml-1" /></div>
               </div>
             )}
           </div>
@@ -293,27 +293,27 @@ const ReelItem = ({ post }) => {
       {/* 3. HEADER OVERLAY */}
       <div className="absolute top-0 left-0 right-0 p-5 flex justify-between items-center bg-gradient-to-b from-black/70 to-transparent z-[60]">
         <div className="flex items-center gap-4">
-          <ArrowLeft size={28} className="text-white cursor-pointer active:scale-90" onClick={() => navigate('/feed')} />
-          <h2 className="text-white text-xl font-black italic tracking-tighter">REELS</h2>
+          <ArrowLeft size={28} className="text-boss-text cursor-pointer active:scale-90" onClick={() => navigate('/feed')} />
+          <h2 className="text-boss-text text-xl font-black italic tracking-tighter">REELS</h2>
         </div>
-        <MoreVertical size={24} className="text-white" />
+        <MoreVertical size={24} className="text-boss-text" />
       </div>
 
       {/* 4. RIGHT SIDE ACTIONS */}
       <div className="absolute right-3 bottom-24 flex flex-col gap-5 items-center z-30">
         <div className="relative mb-2" onClick={() => navigate(`/profile/${post.userId}`)}>
           <div className="w-11 h-11 rounded-full border-2 border-white overflow-hidden shadow-lg"><img src={post.userProfilePic || 'https://via.placeholder.com/150'} className="w-full h-full object-cover" alt="pfp" /></div>
-          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-[#1877F2] rounded-full w-4 h-4 flex items-center justify-center border-2 border-black"><span className="text-white text-[10px] font-bold">+</span></div>
+          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-[#1877F2] rounded-full w-4 h-4 flex items-center justify-center border-2 border-black"><span className="text-boss-text text-[10px] font-bold">+</span></div>
         </div>
 
         <div className="flex flex-col items-center" onClick={handleLikeClick}>
-          <Heart size={32} className={`drop-shadow-lg transition-all ${post.likedBy?.includes(user?.uid) ? 'text-[#FF3040] fill-[#FF3040]' : 'text-white'}`} />
-          <span className="text-white text-[11px] font-bold mt-1">{post.likes || '0'}</span>
+          <Heart size={32} className={`drop-shadow-lg transition-all ${post.likedBy?.includes(user?.uid) ? 'text-[#FF3040] fill-[#FF3040]' : 'text-boss-text'}`} />
+          <span className="text-boss-text text-[11px] font-bold mt-1">{post.likes || '0'}</span>
         </div>
         
         <div className="flex flex-col items-center" onClick={() => setShowComments(true)}>
           <MessageCircle size={32} color="white" className="drop-shadow-lg" />
-          <span className="text-white text-[11px] font-bold mt-1">{post.commentsCount || '0'}</span>
+          <span className="text-boss-text text-[11px] font-bold mt-1">{post.commentsCount || '0'}</span>
         </div>
 
         <div 
@@ -327,7 +327,7 @@ const ReelItem = ({ post }) => {
           <Share2 size={30} color="white" className="drop-shadow-lg" />
         </div>
 
-        <div className="w-9 h-9 rounded-full border-2 border-zinc-500 overflow-hidden animate-spin-slow mt-2 p-1 bg-black/50 backdrop-blur-md">
+        <div className="w-9 h-9 rounded-full border-2 border-zinc-500 overflow-hidden animate-spin-slow mt-2 p-1 bg-boss-bg/50 backdrop-blur-md">
            <img src={post.userProfilePic} className="w-full h-full rounded-full object-cover" alt="" />
         </div>
       </div>
@@ -347,22 +347,22 @@ const ReelItem = ({ post }) => {
           <span className="w-1 h-1 bg-white rounded-full"></span>
           <button className="text-[11px] font-bold text-[#1877F2]">Follow</button>
         </div>
-        <p className="text-white text-[13px] leading-snug line-clamp-2 mb-4 font-medium">{post.caption}</p>
+        <p className="text-boss-text text-[13px] leading-snug line-clamp-2 mb-4 font-medium">{post.caption}</p>
         <div className="flex items-center gap-2 bg-white/10 backdrop-blur-lg border border-white/10 rounded-full px-3 py-2 w-fit">
-          <Music size={12} className="text-white animate-pulse" />
-          <div className="overflow-hidden w-36"><div className="whitespace-nowrap text-white text-[10px] font-bold uppercase tracking-widest animate-marquee">{post.songName || `Original Audio`}</div></div>
+          <Music size={12} className="text-boss-text animate-pulse" />
+          <div className="overflow-hidden w-36"><div className="whitespace-nowrap text-boss-text text-[10px] font-bold uppercase tracking-widest animate-marquee">{post.songName || `Original Audio`}</div></div>
         </div>
       </div>
 
       {/* 6. COMMENT BOTTOM SHEET - FIXED POSITIONING */}
       {showComments && (
         <div className="fixed inset-0 z-[100] flex flex-col justify-end overflow-hidden">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowComments(false)} />
+          <div className="absolute inset-0 bg-boss-bg/60 backdrop-blur-sm" onClick={() => setShowComments(false)} />
           <div className="relative bg-[#121212] w-full h-[75%] rounded-t-[30px] flex flex-col animate-in slide-in-from-bottom duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
             
             {/* Header */}
             <div className="flex justify-between items-center p-5 border-b border-white/5">
-              <h3 className="text-white font-black text-sm uppercase tracking-widest">Comments ({post.commentsCount})</h3>
+              <h3 className="text-boss-text font-black text-sm uppercase tracking-widest">Comments ({post.commentsCount})</h3>
               <div className="p-2 bg-white/5 rounded-full" onClick={() => setShowComments(false)}><X size={20} className="text-zinc-400" /></div>
             </div>
 
@@ -378,7 +378,7 @@ const ReelItem = ({ post }) => {
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-1.5">
-                        <p className="text-white text-[13px] font-bold">{com.username}</p>
+                        <p className="text-boss-text text-[13px] font-bold">{com.username}</p>
                         <VerifiedBadge isVerified={com.isVerified} />
                         <span className="text-[10px] text-zinc-500">• {com.likes || 0} likes</span>
                       </div>
@@ -432,7 +432,7 @@ const ReelItem = ({ post }) => {
                   value={commentText} 
                   onChange={(e) => setCommentText(e.target.value)} 
                   placeholder="Drop a comment, boss..." 
-                  className="flex-1 bg-transparent border-none text-white text-sm outline-none px-3"
+                  className="flex-1 bg-transparent border-none text-boss-text text-sm outline-none px-3"
                   onFocus={() => { /* This helps handle the visual shift on some browsers */ }}
                 />
                 <button onClick={handleAddComment} className="p-2.5 bg-[#1877F2] rounded-xl shadow-lg shadow-[#1877F2]/20 active:scale-90 transition-transform">
@@ -447,9 +447,9 @@ const ReelItem = ({ post }) => {
       {/* 7. SHARE MODAL */}
       {showShareModal && (
         <div className="absolute inset-0 z-[100] flex flex-col justify-end">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setShowShareModal(false)} />
+          <div className="absolute inset-0 bg-boss-bg/40" onClick={() => setShowShareModal(false)} />
           <div className="relative bg-[#1c1c1e] w-full h-[50%] rounded-t-[30px] p-6 flex flex-col animate-in slide-in-from-bottom duration-300">
-            <h3 className="text-white font-bold mb-4">Send to friends</h3>
+            <h3 className="text-boss-text font-bold mb-4">Send to friends</h3>
             <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4">
               {friends.map(friend => (
                 <div key={friend.id} className="flex flex-col items-center gap-2 min-w-[70px]">
@@ -457,7 +457,7 @@ const ReelItem = ({ post }) => {
                     <img src={friend.profilePic || 'https://via.placeholder.com/150'} className="w-full h-full rounded-full object-cover" alt="" />
                   </div>
                   <p className="text-[10px] text-zinc-400 font-medium truncate w-full text-center">{friend.username}</p>
-                  <button className="bg-[#1877F2] text-white text-[10px] font-bold px-3 py-1 rounded-full">Send</button>
+                  <button className="bg-[#1877F2] text-boss-text text-[10px] font-bold px-3 py-1 rounded-full">Send</button>
                 </div>
               ))}
             </div>
@@ -467,12 +467,12 @@ const ReelItem = ({ post }) => {
 
       {/* 8. DOWNLOAD MENU */}
       {showDownloadMenu && (
-        <div className="absolute inset-0 z-[110] bg-black/60 flex items-center justify-center p-10" onClick={() => setShowDownloadMenu(false)}>
+        <div className="absolute inset-0 z-[110] bg-boss-bg/60 flex items-center justify-center p-10" onClick={() => setShowDownloadMenu(false)}>
           <div className="bg-[#1c1c1e] w-full max-w-[280px] rounded-3xl overflow-hidden animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
             <div className="p-6 text-center border-b border-zinc-800">
-              <p className="text-white font-bold">Reel Options</p>
+              <p className="text-boss-text font-bold">Reel Options</p>
             </div>
-            <button className="w-full p-4 flex items-center justify-center gap-3 text-white font-semibold active:bg-zinc-800" onClick={() => {
+            <button className="w-full p-4 flex items-center justify-center gap-3 text-boss-text font-semibold active:bg-zinc-800" onClick={() => {
               window.open(post.media[activeIndex].url, '_blank');
               setShowDownloadMenu(false);
             }}>
@@ -498,7 +498,7 @@ const Reels = () => {
   }, []);
 
   return (
-    <div className="h-screen w-full bg-black overflow-y-scroll snap-y snap-mandatory no-scrollbar scroll-smooth">
+    <div className="h-screen w-full bg-boss-bg overflow-y-scroll snap-y snap-mandatory no-scrollbar scroll-smooth">
       <style>{`
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

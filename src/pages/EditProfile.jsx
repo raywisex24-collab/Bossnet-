@@ -196,14 +196,14 @@ export default function EditProfile() {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-black flex items-center justify-center">
+    <div className="min-h-screen bg-boss-bg flex items-center justify-center">
       <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans pb-10">
-      <div className="flex items-center justify-between p-4 border-b border-white/10 sticky top-0 bg-black z-50">
+    <div className="min-h-screen bg-boss-bg text-boss-text font-sans pb-10">
+      <div className="flex items-center justify-between p-4 border-b border-white/10 sticky top-0 bg-boss-bg z-50">
         <div className="flex items-center gap-4">
           <X onClick={() => navigate(-1)} className="cursor-pointer" />
           <h1 className="text-xl font-bold tracking-tight">Edit profile</h1>
@@ -214,8 +214,8 @@ export default function EditProfile() {
       <div className="flex flex-col items-center py-8">
         <div className="relative cursor-pointer" onClick={handlePhotoAction}>
           <img src={profilePic || userData?.profilePic} className="w-24 h-24 rounded-full object-cover border-2 border-white/10 shadow-xl" alt="profile" />
-          <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center">
-             <Camera size={26} className="text-white/80" />
+          <div className="absolute inset-0 bg-boss-bg/40 rounded-full flex items-center justify-center">
+             <Camera size={26} className="text-boss-text/80" />
           </div>
         </div>
         <button onClick={handlePhotoAction} className="text-[#0095f6] font-bold mt-4 text-sm">Change profile photo</button>
@@ -229,7 +229,7 @@ export default function EditProfile() {
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             disabled={!canEditFullName()}
-            className={`w-full bg-transparent outline-none py-2 text-sm ${!canEditFullName() ? 'text-gray-500 opacity-50' : 'text-white'}`}
+            className={`w-full bg-transparent outline-none py-2 text-sm ${!canEditFullName() ? 'text-gray-500 opacity-50' : 'text-boss-text'}`}
           />
           {!canEditFullName() && <p className="text-[10px] text-red-500 mt-1 italic">Locked for 60 days</p>}
         </div>
@@ -242,7 +242,7 @@ export default function EditProfile() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               disabled={!canEditUsername()}
-              className={`w-full bg-transparent outline-none py-2 text-sm ${!canEditUsername() ? 'text-gray-500 opacity-50' : 'text-white'}`}
+              className={`w-full bg-transparent outline-none py-2 text-sm ${!canEditUsername() ? 'text-gray-500 opacity-50' : 'text-boss-text'}`}
             />
             {checkingUsername && <div className="animate-spin w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full ml-2" />}
             {!isUsernameValid && <span className="text-red-500 text-xs font-bold ml-2 uppercase">Taken</span>}

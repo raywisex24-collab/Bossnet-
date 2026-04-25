@@ -147,7 +147,7 @@ const Settings = () => {
 
   return (
     <div className="min-h-screen bg-boss-bg text-boss-text pb-16 select-none font-sans">
-      <div className="sticky top-0 bg-black/90 backdrop-blur-md z-10 flex items-center p-5 border-b-2 border-white/5">
+      <div className="sticky top-0 bg-boss-bg/90 backdrop-blur-md z-10 flex items-center p-5 border-b-2 border-white/5">
         <button onClick={() => navigate(-1)} className="mr-6 active:scale-90 transition-transform">
           <ArrowLeft size={28} strokeWidth={3} />
         </button>
@@ -167,7 +167,7 @@ const Settings = () => {
                 className="flex items-center justify-between px-6 py-4 active:bg-white/10 transition-colors cursor-pointer group"
               >
                 <div className="flex items-center gap-5">
-                  <span className={item.color || "text-white group-active:scale-110 transition-transform"}>
+                  <span className={item.color || "text-boss-text group-active:scale-110 transition-transform"}>
                     {item.icon}
                   </span>
                   <span className={`text-[17px] font-extrabold tracking-tight ${item.color || "text-zinc-100"}`}>

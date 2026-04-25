@@ -193,7 +193,7 @@ export default function Chatbox() {
   };
 
   return (
-    <div className="flex h-[100dvh] bg-[#0b0e11] text-white overflow-hidden font-sans">
+    <div className="flex h-[100dvh] bg-[#0b0e11] text-boss-text overflow-hidden font-sans">
       {!activeChat ? (
         <ChatList userData={userData} totalUnread={totalUnread} searchTerm={searchTerm} setSearchTerm={setSearchTerm} searchResults={searchResults} navigate={navigate} setActiveChat={setActiveChat} defaultPic={defaultPic} />
       ) : (
@@ -232,14 +232,14 @@ function ChatList({ userData, totalUnread, searchTerm, setSearchTerm, searchResu
             <img src={userData?.profilePic || defaultPic} className="w-full h-full object-cover" alt="Profile" />
           </div>
           <div className="relative">
-             <h1 className="text-2xl font-black text-white italic">MESSAGES</h1>
-             {totalUnread > 0 && <div className="absolute -top-1 -right-4 bg-red-600 text-white text-[10px] px-1.5 rounded-full font-bold">{totalUnread}</div>}
+             <h1 className="text-2xl font-black text-boss-text italic">MESSAGES</h1>
+             {totalUnread > 0 && <div className="absolute -top-1 -right-4 bg-red-600 text-boss-text text-[10px] px-1.5 rounded-full font-bold">{totalUnread}</div>}
           </div>
-          <div className="flex gap-4 text-white/80"><Plus size={22} /><Settings size={22} /></div>
+          <div className="flex gap-4 text-boss-text/80"><Plus size={22} /><Settings size={22} /></div>
         </div>
         <div className="flex items-center bg-[#202329] rounded-full px-4 py-2.5 gap-3">
           <Search size={18} className="text-gray-400" />
-          <input type="text" placeholder="Search Friends..." className="bg-transparent outline-none text-sm text-white w-full" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+          <input type="text" placeholder="Search Friends..." className="bg-transparent outline-none text-sm text-boss-text w-full" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
         </div>
       </div>
       <div className="flex-1 overflow-y-auto px-2 space-y-1">
@@ -420,7 +420,7 @@ function ChatWindow({ activeChat, setActiveChat, messages, message, setMessage, 
       {/* Top Profile Tapping Logic */}
       <div className="p-4 flex items-center justify-between border-b border-white/5 bg-[#16191d]">
         <div className="flex items-center gap-3">
-          <ChevronLeft onClick={() => setActiveChat(null)} size={24} className="text-white cursor-pointer" />
+          <ChevronLeft onClick={() => setActiveChat(null)} size={24} className="text-boss-text cursor-pointer" />
           <div onClick={() => navigate(`/profile/${activeChat.id}`)} className="relative w-10 h-10 cursor-pointer">
             <img src={liveReceiver?.profilePic || defaultPic} className="w-full h-full rounded-full object-cover border border-blue-500/30" alt="" />
             {liveReceiver?.status === 'online' && <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[#16191d] rounded-full" />}
@@ -435,7 +435,7 @@ function ChatWindow({ activeChat, setActiveChat, messages, message, setMessage, 
             </span>
           </div>
         </div>
-        <div className="flex gap-5 text-white/80">
+        <div className="flex gap-5 text-boss-text/80">
           <Phone onClick={() => startCall('voice')} size={20} className="cursor-pointer hover:text-green-500 transition-colors" />
           <Video onClick={() => startCall('video')} size={20} className="cursor-pointer hover:text-blue-500 transition-colors" />
         </div>
@@ -470,7 +470,7 @@ function ChatWindow({ activeChat, setActiveChat, messages, message, setMessage, 
       {/* Action Dialogs */}
       <AnimatePresence>
         {msgOptions && (
-          <div className="fixed inset-0 bg-black/60 z-[300] flex items-center justify-center p-6">
+          <div className="fixed inset-0 bg-boss-bg/60 z-[300] flex items-center justify-center p-6">
             <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="bg-[#16191d] w-full rounded-3xl p-4 space-y-2">
               <h3 className="text-center font-black text-gray-500 text-[10px] uppercase tracking-widest mb-4">Message Options</h3>
               <button onClick={() => { setReplyTo(msgOptions); setMsgOptions(null); }} className="w-full p-4 bg-white/5 rounded-2xl flex items-center gap-3"><Reply size={18}/> Reply</button>
@@ -533,7 +533,7 @@ function ChatWindow({ activeChat, setActiveChat, messages, message, setMessage, 
           <div className="flex-1 bg-[#202329] rounded-2xl px-4 py-2 border border-white/5">
             <textarea 
               rows="1"
-              className="bg-transparent border-none outline-none text-[15px] w-full text-white placeholder-gray-500 resize-none py-1" 
+              className="bg-transparent border-none outline-none text-[15px] w-full text-boss-text placeholder-gray-500 resize-none py-1" 
               placeholder={editingMessage ? "Edit message..." : "Type a message..."} 
               value={message} 
               onChange={(e) => {
@@ -580,7 +580,7 @@ function MessageItem({ msg, isMe, time, canEdit, setReplyTo, setEditingMessage, 
     >
       <div className={`max-w-[80%] px-4 py-2 rounded-2xl text-[14px] relative ${isMe ? 'bg-blue-600 rounded-tr-none' : 'bg-[#202329] rounded-tl-none border border-white/5'}`}>
         {msg.replyTo && (
-          <div className="mb-2 p-2 bg-black/20 rounded-lg border-l-2 border-white/40 text-[11px] opacity-80">
+          <div className="mb-2 p-2 bg-boss-bg/20 rounded-lg border-l-2 border-white/40 text-[11px] opacity-80">
             {msg.replyTo.text}
           </div>
         )}
@@ -599,9 +599,9 @@ function MessageItem({ msg, isMe, time, canEdit, setReplyTo, setEditingMessage, 
           {time} 
           {isMe && (
             <div className="flex">
-              <Check size={10} className={msg.status === 'seen' ? 'text-red-500' : 'text-white'} />
+              <Check size={10} className={msg.status === 'seen' ? 'text-red-500' : 'text-boss-text'} />
               {(msg.status === 'delivered' || msg.status === 'seen') && (
-                <Check size={10} className={`-ml-1.5 ${msg.status === 'seen' ? 'text-red-500' : 'text-white'}`} />
+                <Check size={10} className={`-ml-1.5 ${msg.status === 'seen' ? 'text-red-500' : 'text-boss-text'}`} />
               )}
             </div>
           )}
@@ -617,7 +617,7 @@ function MobileNav({ navigate, totalUnread }) {
       <Home onClick={() => navigate('/feed')} size={22} className="text-gray-500" />
       <div className="relative">
         <MessageCircle size={22} className="text-blue-500" />
-        {totalUnread > 0 && <div className="absolute -top-2 -right-2 bg-red-600 text-white text-[8px] w-4 h-4 flex items-center justify-center rounded-full font-bold">{totalUnread}</div>}
+        {totalUnread > 0 && <div className="absolute -top-2 -right-2 bg-red-600 text-boss-text text-[8px] w-4 h-4 flex items-center justify-center rounded-full font-bold">{totalUnread}</div>}
       </div>
       <Settings onClick={() => navigate('/settings')} size={22} className="text-gray-500" />
     </div>

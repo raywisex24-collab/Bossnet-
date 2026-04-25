@@ -18,10 +18,10 @@ export default function Navbar() {
       
       {/* Compact Sub-Menu - NOW STRETCHED */}
       {showMenu && (
-        <div className="w-56 mb-1 bg-black/80 backdrop-blur-2xl border border-white/10 p-1.5 rounded-[22px] flex flex-col gap-1 shadow-2xl pointer-events-auto animate-in fade-in slide-in-from-bottom-2 duration-200">
+        <div className="w-56 mb-1 bg-boss-bg/80 backdrop-blur-2xl border border-white/10 p-1.5 rounded-[22px] flex flex-col gap-1 shadow-2xl pointer-events-auto animate-in fade-in slide-in-from-bottom-2 duration-200">
           <button 
             onClick={() => handleNav('/upload-post')} 
-            className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/10 rounded-xl text-white transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/10 rounded-xl text-boss-text transition-colors"
           >
             <FileImage size={20} className="text-blue-400" />
             <span className="text-xs font-semibold text-left flex-1">Post</span>
@@ -29,7 +29,7 @@ export default function Navbar() {
           
           <button 
             onClick={() => handleNav('/upload-reel')} 
-            className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/10 rounded-xl text-white transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/10 rounded-xl text-boss-text transition-colors"
           >
             <Film size={20} className="text-red-400" />
             <span className="text-xs font-semibold text-left flex-1">Reel</span>
@@ -51,7 +51,7 @@ export default function Navbar() {
           onClick={() => setShowMenu(!showMenu)} 
           className={`p-2 transition-all active:scale-90 rounded-full ${showMenu ? 'bg-white/20 rotate-45' : ''}`}
         >
-          {showMenu ? <X size={24} className="text-red-500" /> : <Plus size={24} className="text-white" />}
+          {showMenu ? <X size={24} className="text-red-500" /> : <Plus size={24} className="text-boss-text" />}
         </button>
 
         <button onClick={() => navigate('/reels')} className="p-2 active:scale-90 transition-transform">

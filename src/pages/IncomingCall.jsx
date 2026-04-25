@@ -110,7 +110,7 @@ export default function VoiceCall() {
   };
 
   return (
-    <div className="h-[100dvh] bg-[#0b141a] text-white flex flex-col relative overflow-hidden">
+    <div className="h-[100dvh] bg-[#0b141a] text-boss-text flex flex-col relative overflow-hidden">
        {/* Background Pattern */}
        <div className="absolute inset-0 opacity-[0.05] pointer-events-none" 
            style={{ backgroundImage: `url('https://i.pinimg.com/originals/ab/ab/60/abab600fbc02693247076da4663e800c.jpg')`, backgroundSize: '400px' }}>
@@ -143,7 +143,7 @@ export default function VoiceCall() {
             localTracks.current.audioTrack.setEnabled(isMuted);
             setIsMuted(!isMuted);
           }}
-          className={`p-3 rounded-full ${isMuted ? 'bg-white text-black' : 'bg-white/5 text-white'}`}
+          className={`p-3 rounded-full ${isMuted ? 'bg-white text-black' : 'bg-white/5 text-boss-text'}`}
         >
           {isMuted ? <MicOff size={24} /> : <Mic size={24} />}
         </button>

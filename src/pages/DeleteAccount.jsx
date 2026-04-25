@@ -222,7 +222,7 @@ export default function DeleteAccount() {
           <div className={`mt-1 shrink-0 w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-all ${
             isConfirmed ? 'bg-red-500 border-red-500' : 'bg-white border-gray-300 group-hover:border-gray-900'
           }`}>
-            {isConfirmed && <Check size={18} className="text-white stroke-[4px]" />}
+            {isConfirmed && <Check size={18} className="text-boss-text stroke-[4px]" />}
           </div>
           <div>
             <p className="font-black text-base text-gray-900">Acknowledge Consequences</p>
@@ -235,7 +235,7 @@ export default function DeleteAccount() {
           onClick={handleDeleteProcess}
           className={`w-full py-5 mt-4 rounded-2xl font-black uppercase text-xs tracking-[3px] transition-all shadow-xl ${
             isConfirmed 
-              ? 'bg-red-600 text-white shadow-red-200 active:bg-red-700' 
+              ? 'bg-red-600 text-boss-text shadow-red-200 active:bg-red-700' 
               : 'bg-gray-100 text-gray-300 cursor-not-allowed shadow-none'
           }`}
         >

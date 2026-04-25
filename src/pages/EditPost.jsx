@@ -31,10 +31,10 @@ export default function EditPost() {
     setUpdating(false);
   };
 
-  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center"><Loader2 className="animate-spin text-blue-500" /></div>;
+  if (loading) return <div className="min-h-screen bg-boss-bg flex items-center justify-center"><Loader2 className="animate-spin text-blue-500" /></div>;
 
   return (
-    <div className="min-h-screen bg-black text-white p-4">
+    <div className="min-h-screen bg-boss-bg text-boss-text p-4">
       <div className="max-w-lg mx-auto">
         <div className="flex items-center justify-between mb-8">
           <button onClick={() => navigate(-1)} className="p-2 bg-white/5 rounded-full"><ChevronLeft /></button>

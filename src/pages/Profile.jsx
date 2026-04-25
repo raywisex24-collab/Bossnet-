@@ -99,15 +99,15 @@ export default function Profile() {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-black flex items-center justify-center text-white italic animate-pulse">
+    <div className="min-h-screen bg-boss-bg flex items-center justify-center text-boss-text italic animate-pulse">
       Loading Profile...
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans">
+    <div className="min-h-screen bg-boss-bg text-boss-text font-sans">
       {/* HEADER */}
-      <div className="p-4 flex items-center justify-between sticky top-0 bg-black/80 backdrop-blur-md z-50">
+      <div className="p-4 flex items-center justify-between sticky top-0 bg-boss-bg/80 backdrop-blur-md z-50">
         <ArrowLeft onClick={() => navigate(-1)} className="cursor-pointer active:scale-90 transition-transform" />
         <h2 className="font-black italic uppercase tracking-tighter text-sm">
           {profileData?.username || 'Profile'}
@@ -146,7 +146,7 @@ export default function Profile() {
           <button 
             onClick={handleFollowToggle}
             className={`flex-1 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all ${
-              isFollowing ? 'bg-[#262626] text-white border border-white/10' : 'bg-white text-black'
+              isFollowing ? 'bg-[#262626] text-boss-text border border-white/10' : 'bg-white text-black'
             }`}
           >
             {isFollowing ? 'Following' : 'Follow'}
@@ -154,7 +154,7 @@ export default function Profile() {
           
           <button 
             onClick={() => navigate('/chatbox', { state: { targetUser: { id: userId, name: profileData?.username } } })}
-            className="flex-1 bg-[#1e3a8a] text-white py-2.5 rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all border border-white/10"
+            className="flex-1 bg-[#1e3a8a] text-boss-text py-2.5 rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all border border-white/10"
           >
             <MessageCircle size={14} />
             Message
@@ -179,7 +179,7 @@ export default function Profile() {
 
       {/* TAB BAR */}
       <div className="flex justify-around py-2 text-gray-500 border-b border-white/5">
-        <Grid size={20} className="text-white" />
+        <Grid size={20} className="text-boss-text" />
         <Bookmark size={20} />
       </div>
 
@@ -209,10 +209,10 @@ export default function Profile() {
       {/* Full Screen Modal */}
       {zoomedImage && (
         <div 
-          className="fixed inset-0 z-[100] bg-black flex items-center justify-center p-2"
+          className="fixed inset-0 z-[100] bg-boss-bg flex items-center justify-center p-2"
           onClick={() => setZoomedImage(null)}
         >
-          <X className="absolute top-6 right-6 text-white" size={28} />
+          <X className="absolute top-6 right-6 text-boss-text" size={28} />
           <img src={zoomedImage} className="max-w-full max-h-[90vh] object-contain" alt="zoom" />
         </div>
       )}

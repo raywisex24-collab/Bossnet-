@@ -105,7 +105,7 @@ export default function Login() {
         <h1 className="text-5xl font-extrabold bg-gradient-to-r from-[#ff9d00] to-[#8e44ad] bg-clip-text text-transparent drop-shadow-md">
           Bossnet
         </h1>
-        <p className="text-white text-xl mt-2 font-semibold">
+        <p className="text-boss-text text-xl mt-2 font-semibold">
           Connect, Innovate, and Lead.
         </p>
       </div>
@@ -123,7 +123,7 @@ export default function Login() {
               onChange={(e) => setEmailOrUser(e.target.value)}
               placeholder="Username or email address"
               required
-              className="w-full py-4 px-6 bg-[#1a1a20]/90 border border-white/10 rounded-full text-white placeholder-white/70 focus:border-purple-500 outline-none transition-all"
+              className="w-full py-4 px-6 bg-[#1a1a20]/90 border border-white/10 rounded-full text-boss-text placeholder-white/70 focus:border-purple-500 outline-none transition-all"
             />
           </div>
 
@@ -134,12 +134,12 @@ export default function Login() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
               required
-              className="w-full py-4 px-6 bg-[#1a1a20]/90 border border-white/10 rounded-full text-white placeholder-white/70 focus:border-purple-500 outline-none transition-all"
+              className="w-full py-4 px-6 bg-[#1a1a20]/90 border border-white/10 rounded-full text-boss-text placeholder-white/70 focus:border-purple-500 outline-none transition-all"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-6 top-1/2 -translate-y-1/2 text-white/70 font-bold text-sm hover:text-white"
+              className="absolute right-6 top-1/2 -translate-y-1/2 text-boss-text/70 font-bold text-sm hover:text-boss-text"
             >
               {showPassword ? "Hide" : "Show"}
             </button>
@@ -156,7 +156,7 @@ export default function Login() {
 
           <button
             type="submit"
-            className="w-full h-12 mb-4 mt-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 font-bold text-white shadow-lg transition-all active:scale-95"
+            className="w-full h-12 mb-4 mt-2 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 font-bold text-boss-text shadow-lg transition-all active:scale-95"
           >
             Log In
           </button>
@@ -175,7 +175,7 @@ export default function Login() {
         <div className="pt-2 flex justify-center relative z-10">
           <button 
             onClick={() => navigate('/signup')} 
-            className="w-full h-12 rounded-full bg-gradient-to-r from-[#8e44ad] to-[#1877f2] text-white font-bold text-lg shadow-md active:scale-95 transition-transform"
+            className="w-full h-12 rounded-full bg-gradient-to-r from-[#8e44ad] to-[#1877f2] text-boss-text font-bold text-lg shadow-md active:scale-95 transition-transform"
           >
             Create new account
           </button>

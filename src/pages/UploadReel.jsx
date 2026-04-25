@@ -109,8 +109,8 @@ export default function UploadReel() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col font-sans">
-      <div className="p-4 flex justify-between items-center border-b border-white/5 sticky top-0 bg-black/90 backdrop-blur-xl z-50">
+    <div className="min-h-screen bg-boss-bg text-boss-text flex flex-col font-sans">
+      <div className="p-4 flex justify-between items-center border-b border-white/5 sticky top-0 bg-boss-bg/90 backdrop-blur-xl z-50">
         <X onClick={() => navigate(-1)} className="cursor-pointer" />
         <h2 className="font-bold uppercase tracking-tight text-lg">CREATE REEL</h2>
         <button 
@@ -176,14 +176,14 @@ export default function UploadReel() {
               {file.type.startsWith('video') ? (
                 <div className="w-full h-full relative">
                    <video src={URL.createObjectURL(file)} className="w-full h-full object-cover opacity-80" />
-                   <Video size={12} className="absolute bottom-1 right-1 text-white" />
+                   <Video size={12} className="absolute bottom-1 right-1 text-boss-text" />
                 </div>
               ) : (
                 <img src={URL.createObjectURL(file)} className="w-full h-full object-cover" alt="thumb" />
               )}
               <div className={`absolute inset-0 border-2 transition-all ${isSelected ? 'border-[#1877F2] bg-white/10' : 'border-transparent'}`} />
               <div className={`absolute top-1.5 right-1.5 w-5 h-5 rounded-full border border-white/50 flex items-center justify-center text-[10px] font-bold ${
-                isSelected ? 'bg-[#1877F2] border-[#1877F2]' : 'bg-black/40 backdrop-blur-md'
+                isSelected ? 'bg-[#1877F2] border-[#1877F2]' : 'bg-boss-bg/40 backdrop-blur-md'
               }`}>
                 {isSelected ? selectionIndex : ""}
               </div>
@@ -192,7 +192,7 @@ export default function UploadReel() {
         })}
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-black/95 backdrop-blur-2xl border-t border-white/5 flex items-center gap-3 z-[60]">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-boss-bg/95 backdrop-blur-2xl border-t border-white/5 flex items-center gap-3 z-[60]">
         <textarea 
           placeholder="Add a caption..."
           className="flex-1 bg-transparent text-sm outline-none resize-none h-10 py-2"
