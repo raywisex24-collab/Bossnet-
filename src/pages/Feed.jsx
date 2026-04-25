@@ -268,7 +268,7 @@ export default function Feed() {
           if (post.hidden && !isOwner) return null;
           
           return (
-            <div key={post.id} className="w-full mb-6 bg-[#121212] border-y border-white/5 md:border md:rounded-3xl overflow-hidden shadow-2xl relative">
+            <div key={post.id} className="w-full mb-6 bg-transparent border-y border-white/5 md:border md:rounded-3xl overflow-hidden shadow-2xl relative">
               
               {post.isRepost && (
                 <div className="px-4 pt-2 flex items-center gap-2 text-[10px] text-zinc-500 font-bold uppercase tracking-widest border-b border-white/5 pb-2">

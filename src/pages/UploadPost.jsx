@@ -150,7 +150,7 @@ export default function UploadPost() {
             )}
           </div>
           
-          <div className="p-4 bg-zinc-950 flex justify-between items-center">
+          <div className="p-4 bg-transparent flex justify-between items-center">
             <div className="flex items-center gap-2 font-bold text-lg">
               Gallery <ChevronLeft className="-rotate-90 text-zinc-500" size={16}/>
             </div>

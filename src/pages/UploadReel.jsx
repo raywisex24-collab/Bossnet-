@@ -122,7 +122,7 @@ export default function UploadReel() {
         </button>
       </div>
 
-      <div className="w-full aspect-square bg-zinc-950 overflow-hidden relative border-b border-white/5">
+      <div className="w-full aspect-square bg-transparent overflow-hidden relative border-b border-white/5">
         {selectedMedia.length > 0 ? (
           <div className="w-full h-full relative">
             {selectedMedia[selectedMedia.length - 1].type.startsWith('video') ? (

@@ -80,7 +80,7 @@ export default function EmailUpdate() {
           {/* Current Email (Read Only) */}
           <div>
             <label className="text-xs text-gray-500 font-bold uppercase ml-1">Current Email</label>
-            <div className="flex items-center bg-[#121212] p-3 rounded-xl border border-white/10 mt-1 opacity-60">
+            <div className="flex items-center bg-transparent p-3 rounded-xl border border-white/10 mt-1 opacity-60">
               <Mail size={18} className="text-gray-500 mr-3" />
               <span className="text-sm">{user?.email}</span>
             </div>
@@ -89,7 +89,7 @@ export default function EmailUpdate() {
           {/* New Email Input */}
           <div>
             <label className="text-xs text-gray-500 font-bold uppercase ml-1">New Email Address</label>
-            <div className="flex items-center bg-[#121212] p-3 rounded-xl border border-white/10 mt-1 focus-within:border-blue-500 transition-all">
+            <div className="flex items-center bg-transparent p-3 rounded-xl border border-white/10 mt-1 focus-within:border-blue-500 transition-all">
               <Mail size={18} className="text-gray-400 mr-3" />
               <input 
                 type="email"
@@ -106,7 +106,7 @@ export default function EmailUpdate() {
           {!isGoogleUser && (
             <div>
               <label className="text-xs text-gray-500 font-bold uppercase ml-1">Password</label>
-              <div className="flex items-center bg-[#121212] p-3 rounded-xl border border-white/10 mt-1 focus-within:border-blue-500 transition-all">
+              <div className="flex items-center bg-transparent p-3 rounded-xl border border-white/10 mt-1 focus-within:border-blue-500 transition-all">
                 <Lock size={18} className="text-gray-400 mr-3" />
                 <input 
                   type="password"

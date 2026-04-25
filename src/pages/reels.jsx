@@ -358,7 +358,7 @@ const ReelItem = ({ post }) => {
       {showComments && (
         <div className="fixed inset-0 z-[100] flex flex-col justify-end overflow-hidden">
           <div className="absolute inset-0 bg-boss-bg/60 backdrop-blur-sm" onClick={() => setShowComments(false)} />
-          <div className="relative bg-[#121212] w-full h-[75%] rounded-t-[30px] flex flex-col animate-in slide-in-from-bottom duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+          <div className="relative bg-transparent w-full h-[75%] rounded-t-[30px] flex flex-col animate-in slide-in-from-bottom duration-300 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
             
             {/* Header */}
             <div className="flex justify-between items-center p-5 border-b border-white/5">
@@ -426,7 +426,7 @@ const ReelItem = ({ post }) => {
             </div>
 
             {/* Input - Sticky at bottom with fixed padding for mobile */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 bg-[#121212] border-t border-white/5 pb-8">
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-transparent border-t border-white/5 pb-8">
               <div className="flex items-center gap-3 bg-white/5 p-2 rounded-2xl border border-white/10">
                 <input 
                   value={commentText} 

@@ -165,3 +165,35 @@ body {
   color: var(--text-color) !important;
 }
 
+/* Force the background on the main containers */
+#root, .app-container, main {
+  background-color: var(--bg-color) !important;
+  color: var(--text-color) !important;
+}
+
+/* Ensure pages don't have their own hardcoded backgrounds blocking the theme */
+.min-h-screen {
+  background-color: var(--bg-color) !important;
+}
+
+/* Make sure the Reels and Feed scroll areas are see-through */
+.reels-container, .feed-scroll-area {
+  background-color: transparent !important;
+}
+
+/* Force the background on the main containers */
+#root, .app-container, main {
+  background-color: var(--bg-color) !important;
+  color: var(--text-color) !important;
+}
+
+/* Ensure pages don't have their own hardcoded backgrounds blocking the theme */
+.min-h-screen {
+  background-color: var(--bg-color) !important;
+}
+
+/* Make sure the Reels and Feed scroll areas are see-through */
+.reels-container, .feed-scroll-area {
+  background-color: transparent !important;
+}
+
