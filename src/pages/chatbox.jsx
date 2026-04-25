@@ -299,6 +299,17 @@ function ChatWindow({ activeChat, setActiveChat, messages, message, setMessage, 
   const [galleryIndex, setGalleryIndex] = useState(null);
   const [msgOptions, setMsgOptions] = useState(null);
   const navigate = useNavigate();
+  const [chatSettings, setChatSettings] = useState(null); // Added this
+
+  // Added this useEffect to fetch the wallpaper/theme
+  useEffect(() => {
+    if (!activeChat?.id || !currentUser?.uid) return;
+    const chatId = [currentUser.uid, activeChat.id].sort().join('_');
+    const unsub = onSnapshot(doc(db, "chatSettings", chatId), (snap) => {
+      if (snap.exists()) setChatSettings(snap.data());
+    });
+    return () => unsub();
+  }, [activeChat.id, currentUser.uid]);
   
   const IMGBB_API_KEY = 'fa575203bc672f5b48b5eccc5d59185b';
   const CLOUD_NAME = 'dmmxe0bvj';
@@ -480,11 +491,11 @@ function ChatWindow({ activeChat, setActiveChat, messages, message, setMessage, 
               setGalleryIndex={setGalleryIndex}
               chatMedia={chatMedia}
             />
-          );
-        })}
-        </div>
+            );
+          })}
+        </div> {/* This closes the relative z-10 div */}
         <div ref={scrollRef} />
-      </div>
+      </div> {/* This closes the background div */}
 
       {/* Action Dialogs */}
       <AnimatePresence>

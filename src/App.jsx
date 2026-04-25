@@ -21,10 +21,11 @@ import Verify from './pages/Verify';
 import Onboarding from './pages/Onboarding';
 import ForgotPassword from './pages/ForgotPassword';
 import Chatbox from './pages/chatbox';
+import ChatSettings from './pages/ChatSettings'; // ✅ Corrected path
 import Profile from './pages/Profile'; 
 import PersonalProfile from './pages/PersonalProfile';
 import Settings from './pages/Settings'; 
-import ThemeSettings from './pages/ThemeSettings'; // ✅ Import Theme Page
+import ThemeSettings from './pages/ThemeSettings'; 
 import DeleteAccount from './pages/DeleteAccount'; 
 import FollowList from './pages/FollowList';
 import Reels from './pages/reels';
@@ -36,8 +37,6 @@ import EmailUpdate from './pages/EmailUpdate';
 import SearchPage from './pages/SearchPage';
 import Notifications from './pages/Notifications'; 
 import ProtectedRoute from "./ProtectedRoute";
-
-// ✅ Import Editors Page
 import EditorPage from './pages/EditorPage'; 
 
 // Call Pages
@@ -65,8 +64,11 @@ const LayoutWrapper = ({ children }) => {
   const isEditPostPage = location.pathname.startsWith('/edit-post/');
   const isVideoCall = location.pathname.startsWith('/video-call/');
   const isVoiceCall = location.pathname.startsWith('/voice-call/');
+  
+  // ✅ Hide UI for Chat Settings
+  const isChatSettings = location.pathname.startsWith('/chat-settings/');
 
-  const showNavbar = !hideAllUIOn.includes(location.pathname) && !isListPage && !isEditPostPage && !isVideoCall && !isVoiceCall;
+  const showNavbar = !hideAllUIOn.includes(location.pathname) && !isListPage && !isEditPostPage && !isVideoCall && !isVoiceCall && !isChatSettings;
   const showTopHeader = showNavbar && !hideHeaderOnlyOn.includes(location.pathname) && !isOtherUserProfile && !isEditPostPage && !isVideoCall && !isVoiceCall;
 
   return (
@@ -79,7 +81,6 @@ const LayoutWrapper = ({ children }) => {
 };
 
 function App() {
-  // ✅ PERSIST THEME ON LOAD
   useEffect(() => {
     const savedTheme = localStorage.getItem('bossnet-theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
@@ -133,23 +134,20 @@ function App() {
             <Route path="/settings/email" element={<ProtectedRoute><EmailUpdate /></ProtectedRoute>} />
             <Route path="/reels" element={<ProtectedRoute><Reels /></ProtectedRoute>} />
             <Route path="/upload-reel" element={<ProtectedRoute><UploadReel /></ProtectedRoute>} />
-            
             <Route path="/editor" element={<ProtectedRoute><EditorPage /></ProtectedRoute>} />
-
             <Route path="/upload-post" element={<ProtectedRoute><UploadPost /></ProtectedRoute>} />
             <Route path="/edit-post/:postId" element={<ProtectedRoute><EditPost /></ProtectedRoute>} />
             <Route path="/list/:userId/:type" element={<ProtectedRoute><FollowList /></ProtectedRoute>} />
             <Route path="/me" element={<ProtectedRoute><PersonalProfile /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-            
-            {/* ✅ ADDED THEME SETTINGS ROUTE */}
             <Route path="/settings/theme" element={<ProtectedRoute><ThemeSettings /></ProtectedRoute>} />
-            
             <Route path="/delete-account" element={<ProtectedRoute><DeleteAccount /></ProtectedRoute>} />
             <Route path="/profile/:userId" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/chatbox" element={<ProtectedRoute><Chatbox /></ProtectedRoute>} />
             
-            {/* Call Routes */}
+            {/* ✅ Chat Settings Route */}
+            <Route path="/chat-settings/:userId" element={<ProtectedRoute><ChatSettings /></ProtectedRoute>} />
+            
             <Route path="/incoming-call" element={<ProtectedRoute><IncomingCall /></ProtectedRoute>} />
             <Route path="/video-call/:roomId" element={<ProtectedRoute><VideoCall /></ProtectedRoute>} />
             <Route path="/voice-call/:roomId" element={<ProtectedRoute><VoiceCall /></ProtectedRoute>} />
