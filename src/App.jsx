@@ -1,4 +1,4 @@
-import './i18n'; // Make sure this path matches where you saved the file
+import './i18n'; 
 import { Analytics } from '@vercel/analytics/react';
 import React, { useEffect } from 'react'; 
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
@@ -22,7 +22,7 @@ import Verify from './pages/Verify';
 import Onboarding from './pages/Onboarding';
 import ForgotPassword from './pages/ForgotPassword';
 import Chatbox from './pages/chatbox';
-import ChatSettings from './pages/ChatSettings'; // ✅ Corrected path
+import ChatSettings from './pages/ChatSettings';
 import Profile from './pages/Profile'; 
 import PersonalProfile from './pages/PersonalProfile';
 import LanguageSettings from './pages/LanguageSettings';
@@ -50,12 +50,15 @@ import IncomingCall from './pages/IncomingCall';
 const LayoutWrapper = ({ children }) => {
   const location = useLocation();
 
-const hideAllUIOn = [
-  '/', '/pre-splash', '/splash', '/login', '/signup', '/verify', 
-  '/forgot-password', '/onboarding', '/chatbox', '/upload-post',  
-  '/upload-reel', '/settings', '/settings/theme', '/settings/language', '/delete-account', '/incoming-call',
-  '/reels', '/editor' 
-];
+  // ✅ Check if the current page is a splash screen
+  const isSplashPage = ['/', '/pre-splash', '/splash'].includes(location.pathname);
+
+  const hideAllUIOn = [
+    '/', '/pre-splash', '/splash', '/login', '/signup', '/verify', 
+    '/forgot-password', '/onboarding', '/chatbox', '/upload-post',  
+    '/upload-reel', '/settings', '/settings/theme', '/settings/language', '/delete-account', '/incoming-call',
+    '/reels', '/editor' 
+  ];
 
   const hideHeaderOnlyOn = [
     '/me', '/reels', '/search', '/notifications' 
@@ -66,24 +69,26 @@ const hideAllUIOn = [
   const isEditPostPage = location.pathname.startsWith('/edit-post/');
   const isVideoCall = location.pathname.startsWith('/video-call/');
   const isVoiceCall = location.pathname.startsWith('/voice-call/');
-  
-  // ✅ Hide UI for Chat Settings
   const isChatSettings = location.pathname.startsWith('/chat-settings/');
 
   const showNavbar = !hideAllUIOn.includes(location.pathname) && !isListPage && !isEditPostPage && !isVideoCall && !isVoiceCall && !isChatSettings;
   const showTopHeader = showNavbar && !hideHeaderOnlyOn.includes(location.pathname) && !isOtherUserProfile && !isEditPostPage && !isVideoCall && !isVoiceCall;
 
-  return (
-    <div className={`min-h-screen bg-boss-bg text-boss-text transition-all ${showNavbar ? 'pb-24' : 'pb-0'} ${showTopHeader ? 'pt-14' : 'pt-0'}`}>
-      {showTopHeader && <TopHeader />} 
-      <main>{children}</main>
-      {showNavbar && <Navbar />}
-    </div>
-  );
+const isSplash = ['/', '/pre-splash', '/splash'].includes(location.pathname);
+
+return (
+  /* We removed 'bg-boss-bg' here for the splash pages */
+  <div className={`min-h-screen ${isSplash ? '' : 'bg-boss-bg'} text-boss-text transition-all ${showNavbar ? 'pb-24' : 'pb-0'} ${showTopHeader ? 'pt-14' : 'pt-0'}`}>
+    {showTopHeader && <TopHeader />} 
+    <main className={isSplash ? 'bg-transparent' : ''}>{children}</main>
+    {showNavbar && <Navbar />}
+  </div>
+);
 };
 
 function App() {
   useEffect(() => {
+    // Handling the theme storage
     const savedTheme = localStorage.getItem('bossnet-theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
   }, []);
@@ -141,20 +146,16 @@ function App() {
             <Route path="/edit-post/:postId" element={<ProtectedRoute><EditPost /></ProtectedRoute>} />
             <Route path="/list/:userId/:type" element={<ProtectedRoute><FollowList /></ProtectedRoute>} />
             <Route path="/me" element={<ProtectedRoute><PersonalProfile /></ProtectedRoute>} />
-<Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-<Route path="/settings/theme" element={<ProtectedRoute><ThemeSettings /></ProtectedRoute>} />
-<Route path="/settings/language" element={<ProtectedRoute><LanguageSettings /></ProtectedRoute>} /> {/* New Route */}
-<Route path="/delete-account" element={<ProtectedRoute><DeleteAccount /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="/settings/theme" element={<ProtectedRoute><ThemeSettings /></ProtectedRoute>} />
+            <Route path="/settings/language" element={<ProtectedRoute><LanguageSettings /></ProtectedRoute>} />
+            <Route path="/delete-account" element={<ProtectedRoute><DeleteAccount /></ProtectedRoute>} />
             <Route path="/profile/:userId" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/chatbox" element={<ProtectedRoute><Chatbox /></ProtectedRoute>} />
-            
-            {/* ✅ Chat Settings Route */}
             <Route path="/chat-settings/:userId" element={<ProtectedRoute><ChatSettings /></ProtectedRoute>} />
-            
             <Route path="/incoming-call" element={<ProtectedRoute><IncomingCall /></ProtectedRoute>} />
             <Route path="/video-call/:roomId" element={<ProtectedRoute><VideoCall /></ProtectedRoute>} />
             <Route path="/voice-call/:roomId" element={<ProtectedRoute><VoiceCall /></ProtectedRoute>} />
-
             <Route path="*" element={<Navigate to="/feed" replace />} />
           </Routes>
         </LayoutWrapper>

@@ -10,46 +10,41 @@
 
 /* --- THE VIBE COLLECTION --- */
 
-/* 1. Midnight Blue */
 [data-theme='midnight'] {
   --bg-color: #0f172a;
-  --text-color: #f8fafc;
+  --text-color: #ffffff; /* White looks best on deep blue */
   --accent-color: #38bdf8;
   --card-bg: #1e293b;
   --glass-border: rgba(56, 189, 248, 0.2);
 }
 
-/* 2. Cyberpunk (Neon Pink/Purple) */
 [data-theme='cyberpunk'] {
   --bg-color: #0d0221;
-  --text-color: #00ff9f;
+  --text-color: #ffffff; 
   --accent-color: #ff007f;
   --card-bg: #240b36;
   --glass-border: rgba(255, 0, 127, 0.3);
 }
 
-/* 3. Forest Green (Nature) */
 [data-theme='forest'] {
   --bg-color: #064e3b;
-  --text-color: #ecfdf5;
+  --text-color: #ffffff; 
   --accent-color: #10b981;
   --card-bg: #065f46;
   --glass-border: rgba(16, 185, 129, 0.2);
 }
 
-/* 4. Rose Gold (Elegant) */
 [data-theme='rose'] {
   --bg-color: #fff1f2;
-  --text-color: #881337;
+  --text-color: #000000; /* Black text for light pink background */
   --accent-color: #fb7185;
   --card-bg: #ffe4e6;
   --glass-border: rgba(251, 113, 133, 0.2);
 }
 
-/* 5. Hacker (Matrix Style) */
 [data-theme='hacker'] {
   --bg-color: #000000;
-  --text-color: #00ff00;
+  --text-color: #00ff00; /* Keep green text for hacker vibe */
   --accent-color: #008f11;
   --card-bg: #0d0d0d;
   --glass-border: rgba(0, 255, 0, 0.3);
@@ -57,28 +52,25 @@
 
 /* --- THE AFRO-FUSION COLLECTION --- */
 
-/* 6. Sahara (Sunset Orange) */
 [data-theme='sahara'] {
   --bg-color: #450a0a;
-  --text-color: #fef2f2;
+  --text-color: #ffffff;
   --accent-color: #f97316;
   --card-bg: #7f1d1d;
   --glass-border: rgba(249, 115, 22, 0.3);
 }
 
-/* 7. Ocean Drift (Teal) */
 [data-theme='ocean'] {
   --bg-color: #134e4a;
-  --text-color: #ccfbf1;
+  --text-color: #ffffff;
   --accent-color: #2dd4bf;
   --card-bg: #115e59;
   --glass-border: rgba(45, 212, 191, 0.2);
 }
 
-/* 8. Amethyst (Purple) */
 [data-theme='amethyst'] {
   --bg-color: #2e1065;
-  --text-color: #f5f3ff;
+  --text-color: #ffffff;
   --accent-color: #a78bfa;
   --card-bg: #4c1d95;
   --glass-border: rgba(167, 139, 250, 0.2);
@@ -86,37 +78,33 @@
 
 /* --- THE PREMIUM COLLECTION --- */
 
-/* 9. Minimalist White */
 [data-theme='light'] {
   --bg-color: #ffffff;
-  --text-color: #1e293b;
+  --text-color: #000000; /* Black text for white background */
   --accent-color: #2563eb;
   --card-bg: #f1f5f9;
   --glass-border: rgba(0, 0, 0, 0.05);
 }
 
-/* 10. Royal Gold */
 [data-theme='royal'] {
   --bg-color: #1a120b;
-  --text-color: #e5ba73;
+  --text-color: #ffffff;
   --accent-color: #c58940;
   --card-bg: #3c2a21;
   --glass-border: rgba(229, 186, 115, 0.2);
 }
 
-/* 11. Slate (Professional) */
 [data-theme='slate'] {
   --bg-color: #334155;
-  --text-color: #f8fafc;
+  --text-color: #ffffff;
   --accent-color: #94a3b8;
   --card-bg: #475569;
   --glass-border: rgba(255, 255, 255, 0.1);
 }
 
-/* 12. Crimson (Deep Red) */
 [data-theme='crimson'] {
   --bg-color: #7f1d1d;
-  --text-color: #fee2e2;
+  --text-color: #ffffff;
   --accent-color: #ef4444;
   --card-bg: #991b1b;
   --glass-border: rgba(239, 68, 68, 0.2);
@@ -124,34 +112,32 @@
 
 /* --- THE EXPERIMENTAL COLLECTION --- */
 
-/* 13. Coffee (Brown/Cream) */
 [data-theme='coffee'] {
   --bg-color: #3e2723;
-  --text-color: #d7ccc8;
+  --text-color: #ffffff;
   --accent-color: #8d6e63;
   --card-bg: #4e342e;
   --glass-border: rgba(215, 204, 200, 0.1);
 }
 
-/* 14. Lavender (Soft Purple) */
 [data-theme='lavender'] {
   --bg-color: #faf5ff;
-  --text-color: #581c87;
+  --text-color: #000000; /* Black text for light lavender background */
   --accent-color: #d8b4fe;
   --card-bg: #f3e8ff;
   --glass-border: rgba(216, 180, 254, 0.3);
 }
 
-/* 15. Stealth (True Black) */
 [data-theme='stealth'] {
   --bg-color: #000000;
-  --text-color: #a1a1aa;
+  --text-color: #ffffff;
   --accent-color: #ffffff;
   --card-bg: #09090b;
   --glass-border: rgba(255, 255, 255, 0.05);
 }
 
-/* GLOBAL STYLES */
+/* --- GLOBAL STYLES --- */
+
 body {
   margin: 0;
   background-color: var(--bg-color);
@@ -159,51 +145,35 @@ body {
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Removed !important from container backgrounds 
+   so the Splash screen bg-black can work. */
+#root, .app-container, main {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+/* This allows the min-h-screen utility in React to override the theme */
+.min-h-screen {
+  background-color: var(--bg-color);
+}
+
+/* Icons & Popups */
 .glass-popup {
   background-color: var(--card-bg) !important;
   border: 1px solid var(--glass-border) !important;
   color: var(--text-color) !important;
 }
 
-/* Force the background on the main containers */
-#root, .app-container, main {
-  background-color: var(--bg-color) !important;
-  color: var(--text-color) !important;
-}
-
-/* Ensure pages don't have their own hardcoded backgrounds blocking the theme */
-.min-h-screen {
-  background-color: var(--bg-color) !important;
-}
-
-/* Make sure the Reels and Feed scroll areas are see-through */
-.reels-container, .feed-scroll-area {
-  background-color: transparent !important;
-}
-
-/* Force the background on the main containers */
-#root, .app-container, main {
-  background-color: var(--bg-color) !important;
-  color: var(--text-color) !important;
-}
-
-/* Ensure pages don't have their own hardcoded backgrounds blocking the theme */
-.min-h-screen {
-  background-color: var(--bg-color) !important;
-}
-
-/* Make sure the Reels and Feed scroll areas are see-through */
-.reels-container, .feed-scroll-area {
-  background-color: transparent !important;
-}
-
-/* Force all text to follow the theme variables */
-p, h1, h2, h3, h4, h5, h6, span, div, input, textarea {
-  color: var(--text-color) !important;
-}
-
-/* Fix icons: If you use Lucide icons, this helps them change color too */
 svg {
   color: inherit;
 }
 
+/* Ensure Reels/Feed don't conflict */
+.reels-container, .feed-scroll-area {
+  background-color: transparent !important;
+}
+
+/* Set global text color but leave it flexible for pages to override */
+p, h1, h2, h3, h4, h5, h6, span, div, input, textarea {
+  color: var(--text-color);
+}
