@@ -75,39 +75,48 @@ export default function Feed() {
     return () => window.removeEventListener('refreshFeed', handleGlobalRefresh);
   }, [posts]);
 
-  // Fetch Stories Tray Logic
+  // Fetch Stories Tray Logic (Fixed for Real-time + Self)
   useEffect(() => {
-    if (!userData?.following) return;
+    const user = auth.currentUser;
+    if (!user || !userData) return;
 
-    const fetchStories = async () => {
-      const now = Date.now();
-      // Combine your UID with following list to see your story + theirs
-      const userIdsToCheck = [auth.currentUser.uid, ...userData.following];
-      
-      const q = query(
-        collection(db, "stories"),
-        where("userId", "in", userIdsToCheck.slice(0, 30)), // Firestore limit is 30
-        where("expiresAt", ">", now)
-      );
+    // We want to see our own story + people we follow
+    const userIdsToCheck = [user.uid, ...(userData.following || [])];
+    
+    const now = Date.now();
+    const q = query(
+      collection(db, "stories"),
+      where("userId", "in", userIdsToCheck.slice(0, 30)),
+      where("expiresAt", ">", now)
+    );
 
-      const snap = await getDocs(q);
+    // Using onSnapshot so it pops up immediately after upload!
+    const unsubStories = onSnapshot(q, (snap) => {
       const storyMap = {};
 
       snap.docs.forEach(doc => {
         const data = doc.data();
-        // Only show one circle per user
         if (!storyMap[data.userId]) {
           storyMap[data.userId] = {
             userId: data.userId,
-            username: data.userId === auth.currentUser.uid ? "Your Story" : data.username,
-            profilePic: data.profilePic
+            username: data.userId === user.uid ? "Your Story" : data.username,
+            profilePic: data.profilePic,
+            createdAt: data.createdAt // Used for sorting
           };
         }
       });
-      setFollowingStories(Object.values(storyMap));
-    };
 
-    fetchStories();
+      // Sort so "Your Story" is always first, then by time
+      const sortedStories = Object.values(storyMap).sort((a, b) => {
+        if (a.userId === user.uid) return -1;
+        if (b.userId === user.uid) return 1;
+        return b.createdAt - a.createdAt;
+      });
+
+      setFollowingStories(sortedStories);
+    });
+
+    return () => unsubStories();
   }, [userData?.following]);
 
   // 2. Real-time Comments Listener
