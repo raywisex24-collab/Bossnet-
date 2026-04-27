@@ -51,15 +51,15 @@ export default function UploadReel() {
   };
 
   const goToEditor = () => {
-    // 1. Filter only the videos from your selection
-    const videoFiles = selectedMedia.filter(file => file.type.startsWith('video'));
-    
-    if (videoFiles.length > 0) {
-      // 2. Map all videos to their temporary URLs
-      const videoUrls = videoFiles.map(file => URL.createObjectURL(file));
+    if (selectedMedia.length > 0) {
+      // Map ALL selected items (images and videos) to temporary URLs
+      const videoUrls = selectedMedia.map(file => URL.createObjectURL(file));
       
-      // 3. Pass the WHOLE array to the editor
+      // Pass the array to the editor
       navigate('/editor', { state: { videoUrls } });
+    } else {
+      // If nothing is selected, just go to the editor empty
+      navigate('/editor');
     }
   };
 
@@ -123,15 +123,13 @@ export default function UploadReel() {
         </div>
         
         <div className="flex items-center gap-5">
-          {selectedMedia.length > 0 && selectedMedia[selectedMedia.length - 1].type.startsWith('video') && (
-            <button 
-              onClick={goToEditor}
-              className="flex items-center gap-1.5 text-zinc-400 hover:text-white transition-all active:scale-95"
-            >
-              <Wand2 size={16} className="text-[#1877F2]" />
-              <span className="text-[11px] font-black uppercase tracking-widest">Edit</span>
-            </button>
-          )}
+          <button 
+            onClick={goToEditor}
+            className="flex items-center gap-1.5 text-zinc-400 hover:text-white transition-all active:scale-95"
+          >
+            <Wand2 size={16} className="text-[#1877F2]" />
+            <span className="text-[11px] font-black uppercase tracking-widest">Edit</span>
+          </button>
           <button 
             onClick={handleUpload}
             disabled={loading || selectedMedia.length === 0}
@@ -229,15 +227,12 @@ export default function UploadReel() {
           value={caption}
           onChange={(e) => setCaption(e.target.value)}
         />
-        {/* Secondary Edit Option in Footer if Video is Selected */}
-        {selectedMedia.length > 0 && selectedMedia[selectedMedia.length - 1].type.startsWith('video') && (
-           <button 
-             onClick={goToEditor}
-             className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter"
-           >
-             Edit
-           </button>
-        )}
+        <button 
+           onClick={goToEditor}
+           className="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter"
+        >
+          Edit
+        </button>
       </div>
     </div>
   );
