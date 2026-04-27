@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { auth, db } from '../firebase';
 import { doc, collection, onSnapshot, query, orderBy, addDoc, serverTimestamp, updateDoc, arrayUnion, arrayRemove, increment, limit, deleteDoc, getDoc, getDocs, where } from 'firebase/firestore';
 import { Heart, MessageSquare, MoreHorizontal, Globe, Lock, Send, X, Repeat2, Share2, Bookmark, Trash2, Flag, UserX, BellOff, EyeOff, Link, Edit, MessageCircleOff, Eye, UserPlus } from 'lucide-react';
+import StoryAvatar from '../components/StoryAvatar';
 import VerifiedBadge from './VerifiedBadge'; 
 
 export default function Feed() {
@@ -299,14 +300,13 @@ export default function Feed() {
 
               {/* Header */}
               <div className="p-4 flex items-center justify-between relative">
-                <div className="flex items-center gap-3">
-                  <img 
-                    onClick={() => navigate(`/profile/${post.userId}`)}
-                    src={post.userId === auth.currentUser.uid ? userData?.profilePic : post.userImg} 
-                    className="w-10 h-10 rounded-full object-cover border border-white/10 cursor-pointer" 
-                    alt="" 
-                  />
-                  <div>
+<div className="flex items-center gap-3">
+  <StoryAvatar 
+    userId={post.userId} 
+    profilePic={post.userId === auth.currentUser.uid ? userData?.profilePic : post.userImg} 
+    size="40px" 
+  />
+  <div>
                     <div className="flex items-center gap-1">
                       <h4 className="font-bold text-sm text-boss-text">{post.username}</h4>
                       <VerifiedBadge isVerified={post.isVerified} />
