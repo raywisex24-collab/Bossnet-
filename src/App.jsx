@@ -32,6 +32,8 @@ import DeleteAccount from './pages/DeleteAccount';
 import FollowList from './pages/FollowList';
 import Reels from './pages/reels';
 import UploadReel from './pages/UploadReel'; 
+import StoryViewer from './pages/StoryViewer';
+import UploadStory from './pages/UploadStory';
 import UploadPost from './pages/UploadPost'; 
 import EditPost from './pages/EditPost'; 
 import EditProfile from './pages/EditProfile'; 
@@ -56,8 +58,9 @@ const LayoutWrapper = ({ children }) => {
   const hideAllUIOn = [
     '/', '/pre-splash', '/splash', '/login', '/signup', '/verify', 
     '/forgot-password', '/onboarding', '/chatbox', '/upload-post',  
-    '/upload-reel', '/settings', '/settings/theme', '/settings/language', '/delete-account', '/incoming-call',
-    '/reels', '/editor' 
+    '/upload-reel', '/upload-story', '/story-viewer', '/settings', 
+    '/settings/theme', '/settings/language', '/delete-account', 
+    '/incoming-call', '/reels', '/editor', '/story-viewer', 
   ];
 
   const hideHeaderOnlyOn = [
@@ -134,6 +137,7 @@ function App() {
             <Route path="/home" element={<Navigate to="/feed" replace />} />
 
             <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
+           <Route path="/story-viewer/:userId" element={<ProtectedRoute><StoryViewer /></ProtectedRoute>} />
             <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
             <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} /> 
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
@@ -141,6 +145,7 @@ function App() {
             <Route path="/settings/email" element={<ProtectedRoute><EmailUpdate /></ProtectedRoute>} />
             <Route path="/reels" element={<ProtectedRoute><Reels /></ProtectedRoute>} />
             <Route path="/upload-reel" element={<ProtectedRoute><UploadReel /></ProtectedRoute>} />
+            <Route path="/upload-story" element={<ProtectedRoute><UploadStory /></ProtectedRoute>} />
             <Route path="/editor" element={<ProtectedRoute><EditorPage /></ProtectedRoute>} />
             <Route path="/upload-post" element={<ProtectedRoute><UploadPost /></ProtectedRoute>} />
             <Route path="/edit-post/:postId" element={<ProtectedRoute><EditPost /></ProtectedRoute>} />

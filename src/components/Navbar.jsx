@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { LayoutGrid, Search, Plus, Play, UserCircle, FileImage, Film, X } from 'lucide-react';
+import { LayoutGrid, Search, Plus, Play, UserCircle, FileImage, Film, X, Camera } from 'lucide-react';
 
 export default function Navbar() {
   const [showMenu, setShowMenu] = useState(false);
@@ -25,6 +25,14 @@ export default function Navbar() {
           >
             <FileImage size={20} className="text-blue-400" />
             <span className="text-xs font-semibold text-left flex-1">Post</span>
+          </button>
+
+          <button 
+            onClick={() => handleNav('/upload-story')} 
+            className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/10 rounded-xl text-boss-text transition-colors"
+          >
+            <Camera size={20} className="text-purple-400" />
+            <span className="text-xs font-semibold text-left flex-1">Story</span>
           </button>
           
           <button 

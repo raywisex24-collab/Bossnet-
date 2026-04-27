@@ -6,7 +6,7 @@ import {
 } from 'firebase/firestore'; 
 import { 
   ArrowLeft, Grid, Play, Plus, Menu, Settings as SettingsIcon,
-  Heart, MessageCircle, Share2, Layers, Trash2, LogOut, X
+  Heart, MessageCircle, Share2, Layers, Trash2, LogOut, X, PlusCircle
 } from 'lucide-react';
 // Import the badge component you just created
 import VerifiedBadge from './VerifiedBadge';
@@ -30,6 +30,8 @@ export default function PersonalProfile() {
 
   const defaultPic = 'data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%238a8d91"%3E%3Cpath d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/%3E%3C/svg%3E';
 
+  const [hasActiveStory, setHasActiveStory] = useState(false);
+
   useEffect(() => {
     const user = auth.currentUser;
     if (!user) { navigate('/login'); return; }
@@ -38,6 +40,14 @@ export default function PersonalProfile() {
     const unsubUser = onSnapshot(doc(db, "users", uid), (snapshot) => {
       if (snapshot.exists()) setProfileData(snapshot.data());
     });
+
+    // Story Check Logic
+    const unsubStories = onSnapshot(
+      query(collection(db, "stories"), where("userId", "==", uid), where("expiresAt", ">", Date.now())),
+      (snap) => {
+        setHasActiveStory(!snap.empty);
+      }
+    );
 
     const unsubReels = onSnapshot(
       query(collection(db, "videos"), where("userId", "==", uid)), 
@@ -65,7 +75,9 @@ export default function PersonalProfile() {
     const unsubFollowers = onSnapshot(query(collection(db, "follows"), where("followingId", "==", uid)), (snap) => setFollowerCount(snap.docs.length));
     const unsubFollowing = onSnapshot(query(collection(db, "follows"), where("followerId", "==", uid)), (snap) => setFollowingCount(snap.docs.length));
 
-    return () => { unsubUser(); unsubReels(); unsubPosts(); unsubFollowers(); unsubFollowing(); };
+    return () => { 
+      unsubUser(); unsubReels(); unsubPosts(); unsubFollowers(); unsubFollowing(); unsubStories(); 
+    };
   }, [navigate]);
 
   const deleteReel = async (reelId) => {
@@ -131,9 +143,29 @@ export default function PersonalProfile() {
       {/* Profile Header */}
       <div className="px-5 mt-4">
         <div className="flex items-center justify-between mb-4">
-          <div className="w-[86px] h-[86px] rounded-full p-[3px] bg-white/10">
-            <div className="w-full h-full rounded-full border-2 border-black overflow-hidden bg-gray-800">
-              <img src={profileData?.profilePic || defaultPic} className="w-full h-full object-cover" alt="me" />
+          <div className="relative group">
+            {/* Story Glow Ring */}
+            <div 
+              onClick={() => hasActiveStory && navigate(`/story-viewer/${auth.currentUser?.uid}`)}
+              className="w-[86px] h-[86px] rounded-full flex items-center justify-center cursor-pointer transition-transform active:scale-95"
+              style={{
+                padding: '3px',
+                background: hasActiveStory 
+                  ? 'linear-gradient(to right, #f39c12, #e67e22, #9b59b6)' 
+                  : 'rgba(255,255,255,0.1)'
+              }}
+            >
+              <div className="w-full h-full rounded-full border-2 border-black overflow-hidden bg-gray-800">
+                <img src={profileData?.profilePic || defaultPic} className="w-full h-full object-cover" alt="me" />
+              </div>
+            </div>
+
+            {/* Green Plus Button */}
+            <div 
+              onClick={() => navigate('/upload-story')}
+              className="absolute bottom-0 right-0 bg-[#00f300] border-2 border-black rounded-full p-1 cursor-pointer hover:scale-110 active:scale-90 transition-all z-10"
+            >
+              <Plus size={14} className="text-black stroke-[4px]" />
             </div>
           </div>
           <div className="flex gap-8 pr-4 text-center">
