@@ -67,39 +67,41 @@ export default function Feed() {
     const user = auth.currentUser;
     if (!user || !userData) return;
 
-    // Build the list of IDs to check
     const followingList = userData.following || [];
-    const userIdsToCheck = [user.uid, ...followingList].filter(id => id);
-    
-    // Safety check: if no one is followed, just check for self
-    const queryIds = userIdsToCheck.length > 0 ? userIdsToCheck.slice(0, 30) : [user.uid];
+    const queryIds = [user.uid, ...followingList].filter(Boolean);
+    if (queryIds.length === 0) return;
 
-    const now = Date.now();
+    // Simplified query to avoid index conflicts between Timestamp and Number
     const q = query(
       collection(db, "stories"),
-      where("userId", "in", queryIds),
-      where("expiresAt", ">", now)
+      where("userId", "in", queryIds.slice(0, 30))
     );
 
     const unsubStories = onSnapshot(q, (snap) => {
       const storyMap = {};
       let selfHasStory = false;
+      const now = Date.now();
 
       snap.docs.forEach(doc => {
         const data = doc.data();
-        if (data.userId === user.uid) selfHasStory = true;
+        // Use your expiresAt (Number) from Firestore
+        const expiry = data.expiresAt;
         
-        if (!storyMap[data.userId]) {
-          storyMap[data.userId] = {
-            userId: data.userId,
-            username: data.username,
-            profilePic: data.profilePic,
-            createdAt: data.createdAt
-          };
+        if (expiry > now) {
+          if (data.userId === user.uid) selfHasStory = true;
+          
+          if (!storyMap[data.userId]) {
+            storyMap[data.userId] = {
+              userId: data.userId,
+              username: data.username,
+              profilePic: data.profilePic,
+              // Convert Timestamp to Number for reliable sorting
+              createdAt: data.createdAt?.toMillis ? data.createdAt.toMillis() : 0 
+            };
+          }
         }
       });
 
-      // Filter out your own ID for the "followingStories" state
       const othersStories = Object.values(storyMap)
         .filter(s => s.userId !== user.uid)
         .sort((a, b) => b.createdAt - a.createdAt);
@@ -109,7 +111,7 @@ export default function Feed() {
     });
 
     return () => unsubStories();
-  }, [userData]); // Dependency on full userData to catch following list updates
+  }, [userData]);
 
   // 2. Real-time Comments Listener
   useEffect(() => {
@@ -332,13 +334,13 @@ export default function Feed() {
                     navigate('/upload-story'); // Changed from /me to /upload-story
                   }
                 }}
-                className={`p-[3px] rounded-full transition-all active:scale-90 cursor-pointer ${userData?.hasActiveStory ? 'bg-gradient-to-tr from-[#00f2ea] to-[#ff0050]' : 'bg-zinc-800'}`}
+                className={`p-[4px] rounded-full transition-all active:scale-90 cursor-pointer ${userData?.hasActiveStory ? 'bg-gradient-to-tr from-[#00f2ea] to-[#ff0050]' : 'bg-zinc-800'}`}
               >
-                <div className="p-[2px] bg-boss-bg rounded-full">
+                <div className="p-[3px] bg-boss-bg rounded-full">
                   <StoryAvatar 
                     userId={auth.currentUser?.uid} 
                     profilePic={userData?.profilePic} 
-                    size="68px" 
+                    size="85px" 
                   />
                 </div>
               </div>
