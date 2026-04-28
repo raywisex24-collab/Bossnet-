@@ -118,157 +118,20 @@ export default function Feed() {
     return () => unsub();
   }, [activePostForComments]);
 
-  // 3. Like Logic (Modified to sync with original if repost)
-  const handleLike = async (post, likes = []) => {
-    const userId = auth.currentUser.uid;
-    const targetId = post.isRepost ? post.originalPostId : post.id;
-    const postRef = doc(db, "posts", targetId);
-    
-    try {
-      if (likes.includes(userId)) {
-        await updateDoc(postRef, { likes: arrayRemove(userId) });
-      } else {
-        await updateDoc(postRef, { likes: arrayUnion(userId) });
-        if (post.userId !== userId) {
-          await addDoc(collection(db, "notifications"), {
-            toUserId: post.userId,
-            fromUserId: userId,
-            fromUsername: userData?.username || "Someone",
-            fromUserImg: userData?.profilePic || "",
-            isVerified: userData?.isVerified || false,
-            type: "like",
-            postId: targetId,
-            read: false,
-            createdAt: serverTimestamp()
-          });
-        }
-      }
-    } catch (err) { console.error("Error updating likes:", err); }
-  };
-
-  // 4. Repost Logic (Modified for Toggle/Unrepost)
-  const handleRepost = async (post) => {
-    const userId = auth.currentUser.uid;
-    const originalPostId = post.isRepost ? post.originalPostId : post.id;
-    
-    try {
-      const q = query(
-        collection(db, "posts"), 
-        where("userId", "==", userId), 
-        where("originalPostId", "==", originalPostId)
-      );
-      const querySnapshot = await getDocs(q);
-
-      if (!querySnapshot.empty) {
-        // Unrepost
-        const repostId = querySnapshot.docs[0].id;
-        await deleteDoc(doc(db, "posts", repostId));
-        await updateDoc(doc(db, "posts", originalPostId), { repostCount: increment(-1) });
-      } else {
-        // Repost
-        await addDoc(collection(db, "posts"), {
-          userId: userId,
-          username: userData.username,
-          userImg: userData.profilePic,
-          isVerified: userData.isVerified,
-          text: post.text,
-          image: post.image || null,
-          isRepost: true,
-          originalOwnerId: post.userId,
-          originalOwnerName: post.username,
-          originalPostId: originalPostId,
-          createdAt: serverTimestamp(),
-          likes: post.likes || [], // Gain original engagement
-          commentCount: post.commentCount || 0,
-          repostCount: 0,
-          hidden: false,
-          commentsDisabled: post.commentsDisabled || false
-        });
-
-        await updateDoc(doc(db, "posts", originalPostId), { repostCount: increment(1) });
-
-        if (post.userId !== userId) {
-          await addDoc(collection(db, "notifications"), {
-            toUserId: post.userId,
-            fromUserId: userId,
-            fromUsername: userData.username,
-            type: "repost",
-            postId: originalPostId,
-            read: false,
-            createdAt: serverTimestamp()
-          });
-        }
-      }
-    } catch (err) { console.error("Repost error:", err); }
-  };
-
-  // New Menu Helper Functions
-  const handleReport = (post) => {
-    setReportingPost(post);
-    setActiveMenu(null);
-  };
-
-  const submitReport = () => {
-    const reportData = `Reporter: ${userData.username}\nReported User: ${reportingPost.username}\nPost ID: ${reportingPost.id}\nReason: ${reportMessage}`;
-    window.location.href = `mailto:securedauthenticator@gmail.com?subject=POST REPORT&body=${encodeURIComponent(reportData)}`;
-    setReportingPost(null);
-    setReportMessage("");
-  };
-
-  const handleToggleComments = async (postId, currentState) => {
-    await updateDoc(doc(db, "posts", postId), { commentsDisabled: !currentState });
-    setActiveMenu(null);
-  };
-
-  const handleHidePost = async (postId, currentState) => {
-    await updateDoc(doc(db, "posts", postId), { hidden: !currentState });
-    setActiveMenu(null);
-  };
-
-  const copyPostLink = (post) => {
-    const link = post.image || `${window.location.origin}/post/${post.id}`;
-    navigator.clipboard.writeText(link);
-    alert("Link copied!");
-    setActiveMenu(null);
-  };
-
-  // 5. Share Logic
-  const handleShare = async (post) => {
-    const recipientId = window.prompt("Enter User ID to share with:");
-    if (!recipientId) return;
-    try {
-      await addDoc(collection(db, "chats"), {
-        senderId: auth.currentUser.uid,
-        receiverId: recipientId,
-        message: `Check out this post by ${post.username}: /post/${post.id}`,
-        type: "post_share",
-        postId: post.id,
-        read: false,
-        createdAt: serverTimestamp()
-      });
-      alert("Shared successfully!");
-    } catch (err) { console.error("Share error:", err); }
-  };
-
-  // 6. Favorite/Save Logic
-  const handleSave = async (post) => {
-    const userId = auth.currentUser.uid;
-    const userRef = doc(db, "users", userId);
-    try {
-      await updateDoc(userRef, { savedPosts: arrayUnion(post.id) });
-      alert("Saved to favorites!");
-    } catch (err) { console.error("Save error:", err); }
-  };
+  // NEW: Reply State
+  const [replyTo, setReplyTo] = useState(null); // {commentId, username}
 
   const handleAddComment = async (e) => {
     e.preventDefault();
     if (!commentText.trim()) return;
-    const postData = posts.find(p => p.id === activePostForComments);
-    if (postData?.commentsDisabled) { alert("Comments are disabled for this post"); return; }
-
+    
     try {
-      await addDoc(collection(db, "posts", activePostForComments, "comments"), {
-        text: commentText,
+      const colPath = replyTo 
+        ? collection(db, "posts", activePostForComments, "comments", replyTo.commentId, "replies")
+        : collection(db, "posts", activePostForComments, "comments");
+
+      await addDoc(colPath, {
+        text: replyTo ? `@${replyTo.username} ${commentText}` : commentText,
         username: userData.username,
         userImg: userData.profilePic,
         isVerified: userData.isVerified || false,
@@ -276,22 +139,21 @@ export default function Feed() {
         likes: [],
         createdAt: serverTimestamp()
       });
-      await updateDoc(doc(db, "posts", activePostForComments), { commentCount: increment(1) });
+
+      if (!replyTo) {
+        await updateDoc(doc(db, "posts", activePostForComments), { commentCount: increment(1) });
+      }
       setCommentText("");
+      setReplyTo(null);
     } catch (err) { console.error("Comment Error:", err); }
   };
 
-  const handleDeleteComment = async (postId, commentId) => {
-    if (!window.confirm("Delete this comment?")) return;
-    try {
-      await deleteDoc(doc(db, "posts", postId, "comments", commentId));
-      await updateDoc(doc(db, "posts", postId), { commentCount: increment(-1) });
-    } catch (err) { console.error(err); }
-  };
-
-  const handleLikeComment = async (postId, commentId, likes = []) => {
+  const handleLikeComment = async (postId, commentId, likes = [], isReply = false, parentId = null) => {
     const userId = auth.currentUser.uid;
-    const commentRef = doc(db, "posts", postId, "comments", commentId);
+    const commentRef = isReply 
+      ? doc(db, "posts", postId, "comments", parentId, "replies", commentId)
+      : doc(db, "posts", postId, "comments", commentId);
+    
     try {
       if (likes.includes(userId)) {
         await updateDoc(commentRef, { likes: arrayRemove(userId) });
@@ -301,13 +163,65 @@ export default function Feed() {
     } catch (err) { console.error(err); }
   };
 
+  // Sub-comment Listener Component (To avoid heavy re-renders)
+  function ReplyList({ postId, commentId }) {
+    const [replies, setReplies] = useState([]);
+    useEffect(() => {
+      const q = query(collection(db, "posts", postId, "comments", commentId, "replies"), orderBy("createdAt", "asc"));
+      return onSnapshot(q, (snap) => setReplies(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
+    }, [postId, commentId]);
+
+    return (
+      <div className="ml-8 mt-2 space-y-3 border-l-2 border-white/5 pl-4">
+        {replies.map(r => (
+          <div key={r.id} className="flex gap-2 items-start">
+            <img src={r.userImg} onClick={() => navigate(`/profile/${r.userId}`)} className="w-6 h-6 rounded-full object-cover cursor-pointer" />
+            <div className="flex-1">
+              <div className="bg-white/5 p-2 rounded-xl text-xs">
+                <span onClick={() => navigate(`/profile/${r.userId}`)} className="font-bold text-blue-400 cursor-pointer">@{r.username} </span>
+                <span className="text-zinc-200">{r.text}</span>
+              </div>
+              <button 
+                onClick={() => handleLikeComment(postId, r.id, r.likes || [], true, commentId)}
+                className={`text-[9px] font-bold mt-1 ml-1 ${r.likes?.includes(auth.currentUser.uid) ? 'text-red-500' : 'text-zinc-500'}`}
+              >
+                {r.likes?.length || 0} Likes
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // Mini Preview Component for the Post Card
+  function CommentPreview({ postId }) {
+    const [topComments, setTopComments] = useState([]);
+    useEffect(() => {
+      const q = query(collection(db, "posts", postId, "comments"), orderBy("likes", "desc"), limit(2));
+      return onSnapshot(q, (snap) => setTopComments(snap.docs.map(d => d.data())));
+    }, [postId]);
+
+    if (topComments.length === 0) return null;
+    return (
+      <div className="px-5 py-2 space-y-1 bg-black/10">
+        {topComments.map((c, i) => (
+          <p key={i} className="text-[11px] text-zinc-400 truncate">
+            <span className="font-bold text-zinc-300">@{c.username}</span> {c.text}
+          </p>
+        ))}
+      </div>
+    );
+  }
+
   const formatTime = (ts) => {
     if (!ts) return "Just now";
-    const sec = Math.floor((new Date() - ts.toDate()) / 1000);
+    const date = ts.toDate ? ts.toDate() : new Date(ts);
+    const sec = Math.floor((new Date() - date) / 1000);
     if (sec < 60) return "Just now";
     if (sec < 3600) return Math.floor(sec / 60) + "m";
     if (sec < 84600) return Math.floor(sec / 3600) + "h";
-    return ts.toDate().toLocaleDateString();
+    return date.toLocaleDateString();
   };
 
   return (
@@ -527,6 +441,8 @@ export default function Feed() {
                   )}
                 </>
               )}
+              {/* Top 2 Comments Preview */}
+              <CommentPreview postId={post.id} />
 
               {/* Interaction Bar */}
               <div className="p-3 flex items-center justify-between border-t border-white/5 px-6">
@@ -593,41 +509,64 @@ export default function Feed() {
         </div>
       )}
 
+
       {/* COMMENT PANEL */}
       {activePostForComments && (
         <div className="fixed inset-0 z-[300] bg-boss-bg/90 backdrop-blur-md flex flex-col justify-end">
           <div className="bg-[#1c1c1e] w-full max-h-[85vh] rounded-t-[30px] flex flex-col border-t border-white/10 animate-in slide-in-from-bottom duration-300">
             <div className="flex items-center justify-between p-5 border-b border-white/5">
-              <h3 className="font-bold text-lg text-boss-text">Conversation</h3>
-              <button onClick={() => setActivePostForComments(null)} className="p-2 bg-white/5 rounded-full text-zinc-400"><X size={20}/></button>
+              <div>
+                <h3 className="font-bold text-lg text-boss-text">Conversation</h3>
+                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">WRITE A COMMENT</p>
+              </div>
+              <button onClick={() => { setActivePostForComments(null); setReplyTo(null); }} className="p-2 bg-white/5 rounded-full text-zinc-400"><X size={20}/></button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-5 space-y-5 no-scrollbar">
+            <div className="flex-1 overflow-y-auto p-5 no-scrollbar">
               {currentComments.map(c => {
                 const commentLiked = c.likes?.includes(auth.currentUser.uid);
                 return (
-                  <div key={c.id} className="flex gap-3 group">
-                    <img src={c.userImg} className="w-8 h-8 rounded-full object-cover" alt="" />
-                    <div className="flex-1">
-                      <div className="bg-white/5 p-3 rounded-2xl border border-white/5">
-                        <div className="flex items-center justify-between mb-0.5">
-                          <div className="flex items-center gap-1">
-                            <p className="text-[11px] font-bold text-blue-500">@{c.username}</p>
-                            <VerifiedBadge isVerified={c.isVerified} />
+                  <div key={c.id} className="mb-6">
+                    <div className="flex gap-3 group">
+                      <img 
+                        src={c.userImg} 
+                        onClick={() => navigate(`/profile/${c.userId}`)}
+                        className="w-9 h-9 rounded-full object-cover cursor-pointer border-2 border-transparent active:border-blue-500" 
+                      />
+                      <div className="flex-1">
+                        <div className="bg-white/5 p-3 rounded-2xl border border-white/5">
+                          <div className="flex items-center justify-between mb-0.5">
+                            <div className="flex items-center gap-1 cursor-pointer" onClick={() => navigate(`/profile/${c.userId}`)}>
+                              <p className="text-[11px] font-bold text-blue-500">@{c.username}</p>
+                              <VerifiedBadge isVerified={c.isVerified} />
+                            </div>
+                            {c.userId === auth.currentUser.uid && (
+                              <button onClick={() => handleDeleteComment(activePostForComments, c.id)} className="text-zinc-600 hover:text-red-500">
+                                <Trash2 size={12} />
+                              </button>
+                            )}
                           </div>
-                          {c.userId === auth.currentUser.uid && (
-                            <button onClick={() => handleDeleteComment(activePostForComments, c.id)} className="text-zinc-600 hover:text-red-500 transition-colors">
-                              <Trash2 size={12} />
-                            </button>
-                          )}
+                          <p className="text-sm text-zinc-100">{c.text}</p>
                         </div>
-                        <p className="text-sm text-zinc-100">{c.text}</p>
-                      </div>
-                      <div className="flex items-center gap-4 mt-1 ml-2">
-                        <button onClick={() => handleLikeComment(activePostForComments, c.id, c.likes || [])} className={`flex items-center gap-1 text-[10px] font-bold ${commentLiked ? 'text-red-500' : 'text-zinc-500'}`}>
-                          <Heart size={12} fill={commentLiked ? "currentColor" : "none"} />
-                          {c.likes?.length || 0}
-                        </button>
+                        
+                        <div className="flex items-center gap-6 mt-2 ml-2">
+                          <button onClick={() => handleLikeComment(activePostForComments, c.id, c.likes || [])} className={`flex items-center gap-1 text-[10px] font-bold ${commentLiked ? 'text-red-500' : 'text-zinc-500'}`}>
+                            <Heart size={14} fill={commentLiked ? "currentColor" : "none"} />
+                            {c.likes?.length || 0}
+                          </button>
+                          <button 
+                            onClick={() => {
+                              setReplyTo({ commentId: c.id, username: c.username });
+                              document.getElementById('commentInput')?.focus();
+                            }}
+                            className="text-[10px] font-bold text-zinc-500 uppercase tracking-tight"
+                          >
+                            Reply
+                          </button>
+                        </div>
+
+                        {/* REPLIES SECTION */}
+                        <ReplyList postId={activePostForComments} commentId={c.id} />
                       </div>
                     </div>
                   </div>
@@ -635,16 +574,28 @@ export default function Feed() {
               })}
             </div>
 
-            <form onSubmit={handleAddComment} className="p-4 bg-[#2c2c2e] flex items-center gap-3 pb-10">
-              <input 
-                type="text" 
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                placeholder="Write a reply..." 
-                className="flex-1 bg-white/5 border border-white/10 rounded-full px-5 py-3 text-sm text-boss-text focus:outline-none focus:border-blue-500/50"
-              />
-              <button type="submit" className="p-3 bg-blue-600 rounded-full text-boss-text active:scale-90 transition-transform shadow-lg shadow-blue-600/20"><Send size={18} /></button>
-            </form>
+            {/* Input Section */}
+            <div className="p-4 bg-[#1c1c1e] border-t border-white/5">
+              {replyTo && (
+                <div className="flex items-center justify-between bg-blue-600/10 px-4 py-2 rounded-t-xl border-x border-t border-blue-500/20">
+                  <p className="text-[10px] font-bold text-blue-400 uppercase">Replying to @{replyTo.username}</p>
+                  <button onClick={() => setReplyTo(null)}><X size={12} className="text-blue-400"/></button>
+                </div>
+              )}
+              <form onSubmit={handleAddComment} className="flex items-center gap-3 pb-8">
+                <input 
+                  id="commentInput"
+                  type="text" 
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  placeholder={replyTo ? `Reply to ${replyTo.username}...` : "Write a reply..."}
+                  className={`flex-1 bg-white/5 border border-white/10 ${replyTo ? 'rounded-b-2xl rounded-t-none' : 'rounded-full'} px-5 py-3 text-sm text-boss-text focus:outline-none focus:border-blue-500/50`}
+                />
+                <button type="submit" className="p-3 bg-blue-600 rounded-full text-boss-text active:scale-90 shadow-lg shadow-blue-600/20">
+                  <Send size={18} />
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       )}
