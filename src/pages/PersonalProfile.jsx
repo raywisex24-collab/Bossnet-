@@ -20,11 +20,9 @@ export default function PersonalProfile() {
   const [followingCount, setFollowingCount] = useState(0);
   const [activeTab, setActiveTab] = useState('posts');
   const [showSheet, setShowSheet] = useState(false);
+  const [selectedPostIndex, setSelectedPostIndex] = useState(null); 
   const [selectedReelIndex, setSelectedReelIndex] = useState(null);
-  
-  const [selectedPost, setSelectedPost] = useState(null);
   const [deletingPostId, setDeletingPostId] = useState(null);
-
   const [deletingReelId, setDeletingReelId] = useState(null);
   const pressTimer = useRef(null);
 
@@ -109,13 +107,13 @@ export default function PersonalProfile() {
     }, type === 'post' ? 1200 : 1300); 
   };
 
-  const cancelPress = (item, type, index) => {
+  const cancelPress = (type, index) => {
     if (pressTimer.current) {
       clearTimeout(pressTimer.current);
       if (type === 'reel' && !deletingReelId) {
         setSelectedReelIndex(index);
       } else if (type === 'post' && !deletingPostId) {
-        setSelectedPost(item);
+        setSelectedPostIndex(index); // Now tracking index for swiping
       }
     }
   };
@@ -225,9 +223,9 @@ export default function PersonalProfile() {
               <div 
                 key={reel.id} 
                 onMouseDown={() => startPress(reel.id, 'reel')}
-                onMouseUp={() => cancelPress(null, 'reel', index)}
+                onMouseUp={() => cancelPress('reel', index)}
                 onTouchStart={() => startPress(reel.id, 'reel')}
-                onTouchEnd={() => cancelPress(null, 'reel', index)}
+                onTouchEnd={() => cancelPress('reel', index)}
                 className="relative aspect-[9/16] bg-[#1a1a1a] overflow-hidden rounded-md border border-white/5"
               >
                 {reel.videoUrl ? (
@@ -247,16 +245,16 @@ export default function PersonalProfile() {
           </div>
         ) : (
           <div className="grid grid-cols-3 gap-0.5 mt-0.5">
-            {userPosts.map(post => (
+            {userPosts.map((post, index) => (
               <div 
                 key={post.id} 
                 onMouseDown={() => startPress(post.id, 'post')}
-                onMouseUp={() => cancelPress(post, 'post')}
+                onMouseUp={() => cancelPress('post', index)}
                 onTouchStart={() => startPress(post.id, 'post')}
-                onTouchEnd={() => cancelPress(post, 'post')}
+                onTouchEnd={() => cancelPress('post', index)}
                 className="relative aspect-square bg-[#1a1a1a] overflow-hidden"
               >
-                {post.image ? <img src={post.image} className="w-full h-full object-cover" /> : <div className="p-2 text-[10px] text-zinc-500">{post.text}</div>}
+                {post.image ? <img src={post.image} className="w-full h-full object-cover" /> : <div className="p-2 text-[10px] text-zinc-500 line-clamp-4">{post.text}</div>}
                 
                 {deletingPostId === post.id && (
                   <div className="absolute inset-0 bg-red-600/90 z-20 flex flex-col items-center justify-center animate-in fade-in zoom-in duration-200">
@@ -291,46 +289,89 @@ export default function PersonalProfile() {
         </div>
       )}
 
-      {selectedPost && (
-        <div className="fixed inset-0 z-[700] bg-boss-bg flex flex-col items-center justify-center p-4">
-          <button onClick={() => setSelectedPost(null)} className="absolute top-10 left-6 z-[800] text-boss-text p-2 bg-boss-bg/40 rounded-full"><X size={28} /></button>
-          {selectedPost.image ? (
-            <img src={selectedPost.image} className="max-w-full max-h-[80vh] object-contain rounded-lg" alt="post" />
-          ) : (
-            <div className="text-boss-text p-10 bg-zinc-900 rounded-lg">{selectedPost.text}</div>
-          )}
-          <div className="mt-6 w-full max-w-md">
-            <p className="text-boss-text font-bold">@{profileData?.username}</p>
-            <p className="text-zinc-400 mt-2">{selectedPost.caption || selectedPost.text}</p>
+      {/* FULL SCREEN POST VIEWER (SWIPEABLE) */}
+      {selectedPostIndex !== null && (
+        <div className="fixed inset-0 z-[1000] bg-black flex flex-col animate-in fade-in duration-200">
+          <button 
+            onClick={() => setSelectedPostIndex(null)} 
+            className="absolute top-10 right-6 z-[1100] text-boss-text p-3 bg-white/10 rounded-full backdrop-blur-md active:scale-90 transition-all"
+          >
+            <X size={28} />
+          </button>
+          
+          <div className="flex-1 flex overflow-x-auto snap-x snap-mandatory no-scrollbar">
+            {userPosts.map((post, idx) => (
+              <div key={post.id} className="min-w-full h-full snap-center flex flex-col items-center justify-center p-4">
+                <div className="w-full max-w-lg">
+                  {post.image ? (
+                    <img src={post.image} className="w-full max-h-[70vh] object-contain rounded-2xl shadow-2xl" alt="post" />
+                  ) : (
+                    <div className="w-full aspect-square flex items-center justify-center bg-zinc-900 rounded-3xl p-10 text-xl font-medium text-center">
+                      {post.text}
+                    </div>
+                  )}
+                  <div className="mt-6 px-2">
+                    <div className="flex items-center gap-2 mb-2">
+                      <img src={profileData?.profilePic || defaultPic} className="w-6 h-6 rounded-full object-cover" />
+                      <p className="text-boss-text font-bold text-sm">@{profileData?.username}</p>
+                    </div>
+                    <p className="text-zinc-400 text-sm leading-relaxed">{post.caption || post.text}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          <div className="absolute bottom-10 w-full text-center text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+            Swipe to explore posts
           </div>
         </div>
       )}
 
+      {/* FULL SCREEN REEL VIEWER */}
       {selectedReelIndex !== null && userReels[selectedReelIndex] && (
-        <div className="fixed inset-0 z-[500] bg-boss-bg flex flex-col">
-          <button onClick={() => setSelectedReelIndex(null)} className="absolute top-10 left-6 z-[600] text-boss-text p-2 bg-boss-bg/40 rounded-full"><ArrowLeft size={28} /></button>
-          <div className="h-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide">
+        <div className="fixed inset-0 z-[1000] bg-black flex flex-col animate-in fade-in duration-200">
+          {/* Explicit X button to close video as requested */}
+          <button 
+            onClick={() => setSelectedReelIndex(null)} 
+            className="absolute top-10 right-6 z-[1100] text-boss-text p-3 bg-white/10 rounded-full backdrop-blur-md active:scale-90 transition-all"
+          >
+            <X size={28} />
+          </button>
+
+          <div className="h-full overflow-y-scroll snap-y snap-mandatory no-scrollbar">
             {userReels.map((reel, index) => (
-              <div key={reel.id} className="h-full w-full snap-start relative flex items-center justify-center bg-boss-bg">
+              <div key={reel.id} className="h-full w-full snap-start relative flex items-center justify-center bg-black">
                 {reel.videoUrl ? (
                   <video 
                     key={reel.id} 
                     src={reel.videoUrl} 
-                    className="w-full max-h-full object-contain" 
+                    className="w-full h-full object-contain" 
                     autoPlay={index === selectedReelIndex} 
                     loop playsInline muted={false} 
                   />
                 ) : (
                   <div className="text-zinc-600">Video source missing</div>
                 )}
-                <div className="absolute right-4 bottom-32 flex flex-col gap-8 items-center z-[550]">
-                  <Heart size={34} strokeWidth={2.5} className="text-boss-text drop-shadow-lg" />
-                  <MessageCircle size={34} strokeWidth={2.5} className="text-boss-text drop-shadow-lg" />
-                  <Share2 size={34} strokeWidth={2.5} className="text-boss-text drop-shadow-lg" />
+                
+                {/* Overlay Details */}
+                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/60 pointer-events-none" />
+                
+                <div className="absolute right-4 bottom-32 flex flex-col gap-8 items-center z-[1050]">
+                  <div className="flex flex-col items-center gap-1">
+                    <Heart size={30} className="text-boss-text filter drop-shadow-md" />
+                    <span className="text-[10px] font-bold">Like</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <MessageCircle size={30} className="text-boss-text filter drop-shadow-md" />
+                    <span className="text-[10px] font-bold">Reply</span>
+                  </div>
+                  <Share2 size={30} className="text-boss-text filter drop-shadow-md" />
                 </div>
-                <div className="absolute bottom-12 left-5 right-20 z-[550]">
-                  <p className="font-black text-lg text-boss-text">@{profileData?.username}</p>
-                  <p className="text-sm font-bold text-zinc-200 line-clamp-2">{reel.caption}</p>
+
+                <div className="absolute bottom-12 left-5 right-20 z-[1050]">
+                  <p className="font-bold text-lg text-boss-text mb-1">@{profileData?.username}</p>
+                  <p className="text-sm text-zinc-200 line-clamp-2">{reel.caption}</p>
                 </div>
               </div>
             ))}
@@ -340,4 +381,3 @@ export default function PersonalProfile() {
     </div>
   );
 }
-
