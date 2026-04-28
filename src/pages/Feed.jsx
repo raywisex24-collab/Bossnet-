@@ -62,20 +62,13 @@ export default function Feed() {
     return () => window.removeEventListener('refreshFeed', handleGlobalRefresh);
   }, [posts]);
 
-  // Fetch Stories Tray Logic
+  // Fetch Stories Tray Logic - FETCH ALL MODE
   useEffect(() => {
     const user = auth.currentUser;
-    if (!user || !userData) return;
+    if (!user) return;
 
-    const followingList = userData.following || [];
-    const queryIds = [user.uid, ...followingList].filter(Boolean);
-    if (queryIds.length === 0) return;
-
-    // Simplified query to avoid index conflicts between Timestamp and Number
-    const q = query(
-      collection(db, "stories"),
-      where("userId", "in", queryIds.slice(0, 30))
-    );
+    // We removed the 'where' filter to get EVERY story in the collection
+    const q = query(collection(db, "stories"));
 
     const unsubStories = onSnapshot(q, (snap) => {
       const storyMap = {};
@@ -84,34 +77,36 @@ export default function Feed() {
 
       snap.docs.forEach(doc => {
         const data = doc.data();
-        // Use your expiresAt (Number) from Firestore
         const expiry = data.expiresAt;
         
+        // Still filter for time so we don't see dead stories
         if (expiry > now) {
-          if (data.userId === user.uid) selfHasStory = true;
-          
-          if (!storyMap[data.userId]) {
-            storyMap[data.userId] = {
-              userId: data.userId,
-              username: data.username,
-              profilePic: data.profilePic,
-              // Convert Timestamp to Number for reliable sorting
-              createdAt: data.createdAt?.toMillis ? data.createdAt.toMillis() : 0 
-            };
+          if (data.userId === user.uid) {
+            selfHasStory = true;
+          } else {
+            // Only add to others if it's not you
+            if (!storyMap[data.userId]) {
+              storyMap[data.userId] = {
+                userId: data.userId,
+                username: data.username,
+                profilePic: data.profilePic,
+                createdAt: data.createdAt?.toMillis ? data.createdAt.toMillis() : 0 
+              };
+            }
           }
         }
       });
 
-      const othersStories = Object.values(storyMap)
-        .filter(s => s.userId !== user.uid)
+      const allOtherStories = Object.values(storyMap)
         .sort((a, b) => b.createdAt - a.createdAt);
 
       setUserData(prev => ({ ...prev, hasActiveStory: selfHasStory }));
-      setFollowingStories(othersStories);
+      setFollowingStories(allOtherStories);
     });
 
     return () => unsubStories();
-  }, [userData]);
+  }, []); // Only runs once on mount
+
 
   // 2. Real-time Comments Listener
   useEffect(() => {
@@ -320,10 +315,10 @@ export default function Feed() {
       <main className="w-full max-w-lg mx-auto pb-10">
         
         {/* Stories Tray - Persistent Header Style */}
-        <div className="w-full py-4 px-4 overflow-x-auto no-scrollbar flex items-center gap-5 bg-boss-bg border-b border-white/5">
+        <div className="w-full py-4 px-4 overflow-x-auto no-scrollbar flex items-center gap-1.5 bg-boss-bg border-b border-white/5">
           
           {/* PERSISTENT SELF BUTTON */}
-          <div className="flex flex-col items-center gap-2 min-w-[75px] shrink-0">
+          <div className="flex flex-col items-center gap-1.5 min-w-[75px] shrink-0">
             <div className="relative">
               {/* Profile Pic Circle */}
               <div 
@@ -334,13 +329,13 @@ export default function Feed() {
                     navigate('/upload-story'); // Changed from /me to /upload-story
                   }
                 }}
-                className={`p-[4px] rounded-full transition-all active:scale-90 cursor-pointer ${userData?.hasActiveStory ? 'bg-gradient-to-tr from-[#00f2ea] to-[#ff0050]' : 'bg-zinc-800'}`}
+                className={`p-[3px] rounded-full transition-all active:scale-90 cursor-pointer ${userData?.hasActiveStory ? 'bg-gradient-to-tr from-[#00f2ea] to-[#ff0050]' : 'bg-zinc-800'}`}
               >
-                <div className="p-[3px] bg-boss-bg rounded-full">
+                <div className="p-[2px] bg-boss-bg rounded-full">
                   <StoryAvatar 
                     userId={auth.currentUser?.uid} 
                     profilePic={userData?.profilePic} 
-                    size="85px" 
+                    size="62px" 
                   />
                 </div>
               </div>
@@ -351,12 +346,12 @@ export default function Feed() {
                   e.stopPropagation();
                   navigate('/upload-story');
                 }}
-                className="absolute bottom-1 right-1 bg-green-500 border-4 border-boss-bg w-6 h-6 rounded-full flex items-center justify-center text-white hover:bg-green-400 transition-colors shadow-lg"
+                className="absolute bottom-1 right-1 bg-green-500 border-4 border-boss-bg w-5 h-5 rounded-full flex items-center justify-center text-white hover:bg-green-400 transition-colors shadow-lg"
               >
                 <span className="text-lg font-bold mt-[-2px]">+</span>
               </button>
             </div>
-            <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-tighter text-center">
+            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-tighter text-center">
               YOU
             </span>
           </div>
@@ -365,7 +360,7 @@ export default function Feed() {
           {followingStories.map((story) => (
             <div 
               key={story.userId} 
-              className="flex flex-col items-center gap-2 min-w-[75px] active:scale-95 transition-transform cursor-pointer"
+              className="flex flex-col items-center gap-1.5 min-w-[72px] active:scale-95 transition-transform cursor-pointer"
               onClick={() => navigate(`/story-viewer/${story.userId}`)}
             >
               <div className="p-[3px] rounded-full bg-gradient-to-tr from-[#00f2ea] to-[#ff0050]">
@@ -373,11 +368,11 @@ export default function Feed() {
                   <StoryAvatar 
                     userId={story.userId} 
                     profilePic={story.profilePic} 
-                    size="68px" 
+                    size="62px" 
                   />
                 </div>
               </div>
-              <span className="text-[11px] font-bold text-zinc-300 uppercase tracking-tighter truncate w-20 text-center">
+              <span className="text-[11px] font-bold text-zinc-300 uppercase tracking-tighter truncate w-24 text-center">
                 {story.username}
               </span>
             </div>
