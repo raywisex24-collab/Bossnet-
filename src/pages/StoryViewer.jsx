@@ -95,6 +95,8 @@ const StoryViewer = () => {
     }
   };
 
+  const currentStory = stories[currentIndex];
+
   // Real-time Listeners for Likes and Replies
   useEffect(() => {
     if (!currentStory || !showViewerDrawer) return;
@@ -107,7 +109,9 @@ const StoryViewer = () => {
       return () => unsub();
     } else {
       const unsub = onSnapshot(doc(db, "stories", currentStory.id), (docSnap) => {
-        setActiveListData(docSnap.data()?.likes || []);
+        if (docSnap.exists()) {
+          setActiveListData(docSnap.data()?.likes || []);
+        }
       });
       return () => unsub();
     }
@@ -116,7 +120,6 @@ const StoryViewer = () => {
   const onTouchStart = (e) => setTouchStart(e.targetTouches[0].clientY);
   const onTouchEnd = (e) => {
     const touchEnd = e.changedTouches[0].clientY;
-    // Swipe UP (touchStart - touchEnd > 70) to pause
     if (touchStart && touchStart - touchEnd > 70) {
        setIsPaused(!isPaused);
     }
@@ -158,8 +161,6 @@ const StoryViewer = () => {
       <Loader className="animate-spin" />
     </div>
   );
-
-  const currentStory = stories[currentIndex];
 
   return (
     <div 
@@ -336,5 +337,10 @@ const menuCard = { background: '#1a1a1a', width: '80%', borderRadius: '20px', pa
 const menuBtn = { width: '100%', padding: '15px', background: 'transparent', border: 'none', color: '#fff', textAlign: 'left', display: 'flex', gap: '10px', alignItems: 'center', fontSize: '15px', fontWeight: 'bold' };
 const inputStyle = { flex: 1, height: '50px', background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '25px', padding: '0 20px', color: '#fff', outline: 'none' };
 const sendBtn = { background: '#00f2ea', color: '#000', width: '50px', height: '50px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none' };
+const ownerActionBtn = { flex: 1, height: '45px', borderRadius: '12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', fontSize: '12px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', backdropFilter: 'blur(10px)' };
+const drawerStyle = { position: 'absolute', bottom: 0, left: 0, right: 0, height: '60vh', background: 'rgba(28, 28, 30, 0.9)', backdropFilter: 'blur(20px)', borderTopLeftRadius: '30px', borderTopRightRadius: '30px', zIndex: 500, padding: '20px', display: 'flex', flexDirection: 'column', color: '#fff' };
+const drawerHandle = { width: '40px', height: '5px', background: 'rgba(255,255,255,0.3)', borderRadius: '10px', margin: '0 auto 20px', cursor: 'pointer' };
+const drawerContent = { flex: 1, overflowY: 'auto' };
+const drawerItem = { padding: '15px 0', borderBottom: '1px solid rgba(255,255,255,0.1)' };
 
 export default StoryViewer;
