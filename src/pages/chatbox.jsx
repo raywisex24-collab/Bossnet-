@@ -274,7 +274,7 @@ function ChatList({ userData, totalUnread, searchTerm, setSearchTerm, searchResu
           }}
         >
           <Plus size={18} strokeWidth={3} />
-          GROUPS
+          VIEW GROUPS
         </motion.button>
       </div>
 

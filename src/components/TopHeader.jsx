@@ -34,14 +34,23 @@ export default function TopHeader() {
           setUnreadNotifications(snap.size);
         });
 
-        // 3. Chat Unread Listener (Looking for messages where receiver is current user and status is unread)
+        // 3. FIXED: Chat Unread Listener
+        // We query all chats where the user is a participant
         const qChat = query(
           collection(db, "chats"), 
-          where("receiverId", "==", user.uid),
-          where("read", "==", false)
+          where("participants", "array-contains", user.uid)
         );
+        
         const unsubscribeChat = onSnapshot(qChat, (snap) => {
-          setUnreadMessages(snap.size);
+          let totalMessages = 0;
+          snap.docs.forEach(doc => {
+            const data = doc.data();
+            // Sum the specific unread count for the current user
+            if (data.unreadCount && data.unreadCount[user.uid]) {
+              totalMessages += data.unreadCount[user.uid];
+            }
+          });
+          setUnreadMessages(totalMessages);
         });
 
         return () => {
