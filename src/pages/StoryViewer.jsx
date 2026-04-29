@@ -97,6 +97,18 @@ const StoryViewer = () => {
 
   const currentStory = stories[currentIndex];
 
+  // The missing function that was causing the blank screen crash
+  const getTimeAgo = (timestamp) => {
+    if (!timestamp || !timestamp.seconds) return "Just now";
+    const seconds = Math.floor((Date.now() - (timestamp.seconds * 1000)) / 1000);
+    if (seconds < 60) return "Just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h`;
+    return Math.floor(hours / 24) + "d";
+  };
+
   // Real-time Listeners for Likes and Replies
   useEffect(() => {
     if (!currentStory || !showViewerDrawer) return;
@@ -192,7 +204,7 @@ const StoryViewer = () => {
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <span style={{ fontWeight: 'bold', fontSize: '14px' }}>{currentStory.username}</span>
-              <span style={{ fontSize: '12px', color: '#888' }}>• {currentStory.createdAt?.toDate ? new Date(currentStory.createdAt.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</span>
+<span style={{ fontSize: '12px', color: '#888' }}>• {getTimeAgo(currentStory.createdAt)}</span>
             </div>
             {currentStory.repostedFrom && <span style={{ fontSize: '9px', color: '#aaa' }}>Reposted from {currentStory.repostedFrom}</span>}
           </div>
@@ -240,7 +252,7 @@ const StoryViewer = () => {
               <Heart size={18} fill="white" /> {currentStory?.likes?.length || 0} Likes
             </button>
             <button style={ownerActionBtn} onClick={(e) => { e.stopPropagation(); setShowViewerDrawer('replies'); }}>
-              <Send size={18} /> View Replies
+              <Send size={18} /> {showViewerDrawer === 'replies' ? activeListData.length : 'View'} Replies
             </button>
           </div>
         ) : (
