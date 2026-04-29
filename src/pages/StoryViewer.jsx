@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { db, auth } from '../firebase';
 import { 
   collection, query, where, getDocs, orderBy, doc, 
-  deleteDoc, addDoc, serverTimestamp, updateDoc, arrayUnion 
+  deleteDoc, addDoc, serverTimestamp, updateDoc, arrayUnion, onSnapshot
 } from 'firebase/firestore';
 import { 
   X, Loader, Bell, BellOff, MoreVertical, 
@@ -26,6 +26,8 @@ const StoryViewer = () => {
   const [showReplyInput, setShowReplyInput] = useState(false);
   const [replyText, setReplyText] = useState("");
   const [touchStart, setTouchStart] = useState(null);
+  const [showViewerDrawer, setShowViewerDrawer] = useState(null); 
+  const [activeListData, setActiveListData] = useState([]);
 
   const progressTimer = useRef(null);
   const STORY_DURATION = 15000;
@@ -93,10 +95,29 @@ const StoryViewer = () => {
     }
   };
 
+  // Real-time Listeners for Likes and Replies
+  useEffect(() => {
+    if (!currentStory || !showViewerDrawer) return;
+
+    if (showViewerDrawer === 'replies') {
+      const q = query(collection(db, "stories", currentStory.id, "replies"), orderBy("createdAt", "desc"));
+      const unsub = onSnapshot(q, (snap) => {
+        setActiveListData(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      });
+      return () => unsub();
+    } else {
+      const unsub = onSnapshot(doc(db, "stories", currentStory.id), (docSnap) => {
+        setActiveListData(docSnap.data()?.likes || []);
+      });
+      return () => unsub();
+    }
+  }, [showViewerDrawer, currentStory]);
+
   const onTouchStart = (e) => setTouchStart(e.targetTouches[0].clientY);
   const onTouchEnd = (e) => {
     const touchEnd = e.changedTouches[0].clientY;
-    if (touchStart && touchStart - touchEnd < -70) {
+    // Swipe UP (touchStart - touchEnd > 70) to pause
+    if (touchStart && touchStart - touchEnd > 70) {
        setIsPaused(!isPaused);
     }
     setTouchStart(null);
@@ -204,13 +225,30 @@ const StoryViewer = () => {
 
       {/* Footer */}
       <div style={footerStyle}>
-        <div style={replyBar} onClick={() => setShowReplyInput(true)}>
-          Send a reply...
-        </div>
-        <div style={{ display: 'flex', gap: '15px' }}>
-           <Heart onClick={(e) => { e.stopPropagation(); handleLike(currentStory.id); }} size={28} />
-           <Share2 onClick={(e) => { e.stopPropagation(); setShowSubMenu(true); }} size={28} />
-        </div>
+        {userId === auth.currentUser?.uid ? (
+          <div style={{ display: 'flex', width: '100%', gap: '10px' }}>
+            <button style={ownerActionBtn} onClick={(e) => { e.stopPropagation(); setShowViewerDrawer('likes'); }}>
+              <Heart size={18} fill="white" /> {currentStory?.likes?.length || 0} Likes
+            </button>
+            <button style={ownerActionBtn} onClick={(e) => { e.stopPropagation(); setShowViewerDrawer('replies'); }}>
+              <Send size={18} /> View Replies
+            </button>
+          </div>
+        ) : (
+          <>
+            <div style={replyBar} onClick={() => setShowReplyInput(true)}>
+              Send a reply...
+            </div>
+            <div style={{ display: 'flex', gap: '15px' }}>
+              <Heart 
+                onClick={(e) => { e.stopPropagation(); handleLike(currentStory.id); }} 
+                size={28} 
+                fill={currentStory?.likes?.includes(auth.currentUser?.uid) ? "white" : "none"}
+              />
+              <Share2 onClick={(e) => { e.stopPropagation(); setShowSubMenu(true); }} size={28} />
+            </div>
+          </>
+        )}
       </div>
 
       {/* Sub Menu */}
@@ -242,6 +280,43 @@ const StoryViewer = () => {
           </div>
         </div>
       )}
+
+      {/* GLASSMORPHISM DRAWER */}
+      <AnimatePresence>
+        {showViewerDrawer && (
+          <motion.div 
+            initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            style={drawerStyle}
+          >
+            <div style={drawerHandle} onClick={() => setShowViewerDrawer(null)} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ fontWeight: 'bold', fontSize: '14px' }}>
+                {showViewerDrawer === 'likes' ? 'Story Likes' : 'Story Replies'}
+              </h3>
+              <X onClick={() => setShowViewerDrawer(null)} size={20} />
+            </div>
+            <div style={drawerContent}>
+              {activeListData.length === 0 ? (
+                <p style={{ textAlign: 'center', color: '#888', marginTop: '40px' }}>No interactions yet.</p>
+              ) : (
+                activeListData.map((item, i) => (
+                  <div key={i} style={drawerItem}>
+                    {showViewerDrawer === 'replies' ? (
+                      <div style={{ flex: 1 }}>
+                        <p style={{ fontSize: '13px', fontWeight: 'bold', color: '#00f2ea' }}>@{item.username}</p>
+                        <p style={{ fontSize: '14px' }}>{item.text}</p>
+                      </div>
+                    ) : (
+                      <p style={{ fontSize: '14px' }}>User ID: {item}</p>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
