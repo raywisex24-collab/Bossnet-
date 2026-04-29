@@ -272,6 +272,7 @@ function ChatList({ userData, totalUnread, searchTerm, setSearchTerm, searchResu
 
 function RecentChatCard({ chat, setActiveChat, defaultPic }) {
   const [otherUser, setOtherUser] = useState(null);
+  const [isHidden, setIsHidden] = useState(false);
   const user = auth.currentUser;
   const otherUserId = chat.participants?.find(p => p !== user?.uid);
   const myUnread = chat.unreadCount?.[user?.uid] || 0;
@@ -279,33 +280,72 @@ function RecentChatCard({ chat, setActiveChat, defaultPic }) {
 
   useEffect(() => {
     if (!otherUserId) return;
+    // Check if user manually hid this chat recently
+    const hiddenChats = JSON.parse(localStorage.getItem('hiddenChats') || '{}');
+    if (hiddenChats[chat.id] === chat.lastTimestamp?.seconds) {
+      setIsHidden(true);
+    }
+
     return onSnapshot(doc(db, "users", otherUserId), (snap) => {
       if (snap.exists()) setOtherUser({ id: snap.id, ...snap.data() });
     });
-  }, [otherUserId]);
+  }, [otherUserId, chat.id, chat.lastTimestamp]);
+
+  const handleSwipeDelete = () => {
+    // Save to local storage so it stays hidden until a new message arrives
+    const hiddenChats = JSON.parse(localStorage.getItem('hiddenChats') || '{}');
+    hiddenChats[chat.id] = chat.lastTimestamp?.seconds;
+    localStorage.setItem('hiddenChats', JSON.stringify(hiddenChats));
+    setIsHidden(true);
+  };
+
+  if (isHidden) return null;
 
   return (
-    <div onClick={() => setActiveChat(otherUser)} className={`flex items-center justify-between p-3 rounded-2xl ${myUnread > 0 ? 'bg-blue-500/10' : 'hover:bg-white/5'}`}>
-      <div className="flex items-center gap-3">
-        {/* Unread dot on the LEFT */}
-        {myUnread > 0 && <div className="w-2.5 h-2.5 bg-red-600 rounded-full" />}
-        <div className="relative w-12 h-12">
-          <img src={otherUser?.profilePic || defaultPic} className="w-full h-full rounded-full object-cover border border-white/10" alt="Avatar" />
-          {otherUser?.status === 'online' && (
-            <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-[#0b0e11] rounded-full" />
-          )}
-        </div>
-        <div className="flex flex-col">
-          <div className="flex items-center gap-1">
-            <h4 className="text-[15px] font-bold">{otherUser?.username || "Loading..."}</h4>
-            <VerifiedBadge isVerified={otherUser?.isVerified} />
-          </div>
-          <p className="text-[12px] truncate w-40">
-            {isTyping ? <span className="text-blue-400 italic">Typing...</span> : chat.lastMessage}
-          </p>
-        </div>
+    <div className="relative overflow-hidden rounded-2xl mb-1">
+      {/* Red Background behind the chat */}
+      <div className="absolute inset-0 bg-red-600 flex items-center px-6 justify-start">
+        <Trash2 size={20} className="text-white animate-pulse" />
       </div>
-      {myUnread > 0 && <div className="bg-red-600 px-1.5 rounded-full text-[10px] font-black">{myUnread}</div>}
+
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: 0, right: 300 }}
+        onDragEnd={(_, info) => {
+          if (info.offset.x > 150) handleSwipeDelete();
+        }}
+        whileTap={{ 
+          scale: 0.98, 
+          boxShadow: "0px 0px 15px rgba(59, 130, 246, 0.5)",
+          zIndex: 10
+        }}
+        onClick={() => setActiveChat(otherUser)}
+        className={`relative flex items-center justify-between p-3 bg-[#0b0e11] cursor-pointer border-b border-white/5 ${myUnread > 0 ? 'bg-blue-500/5' : 'hover:bg-white/5'}`}
+      >
+        <div className="flex items-center gap-3">
+          {myUnread > 0 && <div className="w-2.5 h-2.5 bg-red-600 rounded-full" />}
+          <div className="relative w-12 h-12">
+            <img src={otherUser?.profilePic || defaultPic} className="w-full h-full rounded-full object-cover border border-white/10" alt="Avatar" />
+            {otherUser?.status === 'online' && (
+              <div className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-[#0b0e11] rounded-full" />
+            )}
+          </div>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-1">
+              <h4 className="text-[15px] font-bold">{otherUser?.username || "Loading..."}</h4>
+              <VerifiedBadge isVerified={otherUser?.isVerified} />
+            </div>
+            <p className="text-[12px] text-gray-400 truncate w-40">
+              {isTyping ? <span className="text-blue-400 italic">Typing...</span> : chat.lastMessage}
+            </p>
+          </div>
+        </div>
+        {myUnread > 0 && (
+          <div className="bg-red-600 px-1.5 py-0.5 rounded-full text-[10px] font-black text-white">
+            {myUnread}
+          </div>
+        )}
+      </motion.div>
     </div>
   );
 }
