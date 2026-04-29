@@ -136,9 +136,14 @@ const StoryViewer = () => {
   };
 
   const handleLike = async (storyId) => {
+    const { arrayRemove } = require('firebase/firestore'); 
     try {
       const ref = doc(db, "stories", storyId);
-      await updateDoc(ref, { likes: arrayUnion(auth.currentUser?.uid) });
+      const isLiked = currentStory.likes?.includes(auth.currentUser?.uid);
+      
+      await updateDoc(ref, { 
+        likes: isLiked ? arrayRemove(auth.currentUser?.uid) : arrayUnion(auth.currentUser?.uid) 
+      });
     } catch (err) { console.error(err); }
   };
 
@@ -185,7 +190,10 @@ const StoryViewer = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }} onClick={() => navigate(`/profile/${userId}`)}>
           <img src={currentStory.profilePic} style={avatarStyle} alt="" />
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontWeight: 'bold', fontSize: '14px' }}>{currentStory.username}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <span style={{ fontWeight: 'bold', fontSize: '14px' }}>{currentStory.username}</span>
+              <span style={{ fontSize: '12px', color: '#888' }}>• {currentStory.createdAt?.toDate ? new Date(currentStory.createdAt.toDate()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''}</span>
+            </div>
             {currentStory.repostedFrom && <span style={{ fontSize: '9px', color: '#aaa' }}>Reposted from {currentStory.repostedFrom}</span>}
           </div>
         </div>
@@ -297,24 +305,35 @@ const StoryViewer = () => {
               </h3>
               <X onClick={() => setShowViewerDrawer(null)} size={20} />
             </div>
-            <div style={drawerContent}>
-              {activeListData.length === 0 ? (
-                <p style={{ textAlign: 'center', color: '#888', marginTop: '40px' }}>No interactions yet.</p>
-              ) : (
-                activeListData.map((item, i) => (
-                  <div key={i} style={drawerItem}>
-                    {showViewerDrawer === 'replies' ? (
-                      <div style={{ flex: 1 }}>
-                        <p style={{ fontSize: '13px', fontWeight: 'bold', color: '#00f2ea' }}>@{item.username}</p>
-                        <p style={{ fontSize: '14px' }}>{item.text}</p>
-                      </div>
-                    ) : (
-                      <p style={{ fontSize: '14px' }}>User ID: {item}</p>
-                    )}
-                  </div>
-                ))
-              )}
+<div style={drawerContent}>
+  {activeListData.length === 0 ? (
+    <p style={{ textAlign: 'center', color: '#888', marginTop: '40px' }}>No interactions yet.</p>
+  ) : (
+    activeListData.map((item, i) => (
+      <div key={i} style={drawerItem}>
+        {showViewerDrawer === 'replies' ? (
+          <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
+            <div style={{ width: '35px', height: '35px', borderRadius: '50%', background: '#333', overflow: 'hidden' }}>
+              <img src={item.userAvatar || 'https://via.placeholder.com/35'} style={{width:'100%', height:'100%', objectFit:'cover'}} />
             </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <p style={{ fontSize: '13px', fontWeight: 'bold', color: '#00f2ea' }}>@{item.username || 'User'}</p>
+                <p style={{ fontSize: '10px', color: '#888' }}>{getTimeAgo(item.createdAt)}</p>
+              </div>
+              <p style={{ fontSize: '14px', marginTop: '2px' }}>{item.text}</p>
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+             <Heart size={14} fill="#ff4444" color="#ff4444" />
+             <p style={{ fontSize: '14px' }}>User ID: {item.slice(0, 8)}...</p>
+          </div>
+        )}
+      </div>
+    ))
+  )}
+</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -341,6 +360,6 @@ const ownerActionBtn = { flex: 1, height: '45px', borderRadius: '12px', backgrou
 const drawerStyle = { position: 'absolute', bottom: 0, left: 0, right: 0, height: '60vh', background: 'rgba(28, 28, 30, 0.9)', backdropFilter: 'blur(20px)', borderTopLeftRadius: '30px', borderTopRightRadius: '30px', zIndex: 500, padding: '20px', display: 'flex', flexDirection: 'column', color: '#fff' };
 const drawerHandle = { width: '40px', height: '5px', background: 'rgba(255,255,255,0.3)', borderRadius: '10px', margin: '0 auto 20px', cursor: 'pointer' };
 const drawerContent = { flex: 1, overflowY: 'auto' };
-const drawerItem = { padding: '15px 0', borderBottom: '1px solid rgba(255,255,255,0.1)' };
+const drawerItem = { padding: '15px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'flex-start' };
 
 export default StoryViewer;
