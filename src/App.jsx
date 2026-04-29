@@ -42,6 +42,7 @@ import SearchPage from './pages/SearchPage';
 import Notifications from './pages/Notifications'; 
 import ProtectedRoute from "./ProtectedRoute";
 import EditorPage from './pages/EditorPage'; 
+import GroupPage from './pages/GroupPage';
 
 // Call Pages
 import VideoCall from './pages/VideoCall';
@@ -157,6 +158,7 @@ function App() {
             <Route path="/delete-account" element={<ProtectedRoute><DeleteAccount /></ProtectedRoute>} />
             <Route path="/profile/:userId" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/chatbox" element={<ProtectedRoute><Chatbox /></ProtectedRoute>} />
+            <Route path="/groups" element={<GroupPage />} />
             <Route path="/chat-settings/:userId" element={<ProtectedRoute><ChatSettings /></ProtectedRoute>} />
             <Route path="/incoming-call" element={<ProtectedRoute><IncomingCall /></ProtectedRoute>} />
             <Route path="/video-call/:roomId" element={<ProtectedRoute><VideoCall /></ProtectedRoute>} />

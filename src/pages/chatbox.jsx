@@ -242,6 +242,25 @@ function ChatList({ userData, totalUnread, searchTerm, setSearchTerm, searchResu
           <input type="text" placeholder="Search Friends..." className="bg-transparent outline-none text-sm text-boss-text w-full" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
         </div>
       </div>
+
+      {/* --- NEW GROUPS BUTTON START --- */}
+      <div className="px-4 mb-4">
+        <motion.button
+          whileTap={{ scale: 0.95, boxShadow: "0px 0px 20px rgba(168, 85, 247, 0.8)" }}
+          onClick={() => navigate('/groups')}
+          className="w-full py-3 rounded-2xl flex items-center justify-center gap-2 font-black italic text-sm tracking-widest shadow-lg"
+          style={{
+            background: "linear-gradient(45deg, #8b5cf6, #f97316, #3b82f6)",
+            color: "white",
+            textShadow: "0px 1px 2px rgba(0,0,0,0.5)"
+          }}
+        >
+          <Plus size={18} strokeWidth={3} />
+          GROUPS
+        </motion.button>
+      </div>
+      {/* --- NEW GROUPS BUTTON END --- */}
+
       <div className="flex-1 overflow-y-auto px-2 space-y-1">
         {recentChats.map(chat => (
           <RecentChatCard key={chat.id} chat={chat} setActiveChat={setActiveChat} defaultPic={defaultPic} />
