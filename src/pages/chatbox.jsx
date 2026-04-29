@@ -215,14 +215,33 @@ const formatLastSeen = (lastSeen) => {
 
 function ChatList({ userData, totalUnread, searchTerm, setSearchTerm, searchResults, navigate, setActiveChat, defaultPic }) {
   const [recentChats, setRecentChats] = useState([]);
+  // Get hidden chat IDs from local storage
+  const [hiddenChats, setHiddenChats] = useState(JSON.parse(localStorage.getItem('hiddenChats') || '{}'));
+
   useEffect(() => {
     const user = auth.currentUser;
     if (!user) return;
     const q = query(collection(db, "chats"), where("participants", "array-contains", user.uid), orderBy("lastTimestamp", "desc"));
     return onSnapshot(q, (snap) => {
-      setRecentChats(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      const chats = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      
+      // Filter out chats that were hidden UNLESS they have a new message since hiding
+      const visibleChats = chats.filter(chat => {
+        const hideData = hiddenChats[chat.id];
+        if (!hideData) return true;
+        // If the chat has a newer timestamp than when we hid it, show it again
+        return chat.lastTimestamp?.toMillis() > hideData.time;
+      });
+      
+      setRecentChats(visibleChats);
     });
-  }, [userData]); 
+  }, [userData, hiddenChats]);
+
+  const handleHideChat = (chatId) => {
+    const newHidden = { ...hiddenChats, [chatId]: { time: Date.now() } };
+    setHiddenChats(newHidden);
+    localStorage.setItem('hiddenChats', JSON.stringify(newHidden));
+  };
 
   return (
     <div className="flex-1 flex flex-col bg-[#0b0e11] pb-24 overflow-hidden">
@@ -243,7 +262,6 @@ function ChatList({ userData, totalUnread, searchTerm, setSearchTerm, searchResu
         </div>
       </div>
 
-      {/* --- NEW GROUPS BUTTON START --- */}
       <div className="px-4 mb-4">
         <motion.button
           whileTap={{ scale: 0.95, boxShadow: "0px 0px 20px rgba(168, 85, 247, 0.8)" }}
@@ -259,20 +277,26 @@ function ChatList({ userData, totalUnread, searchTerm, setSearchTerm, searchResu
           GROUPS
         </motion.button>
       </div>
-      {/* --- NEW GROUPS BUTTON END --- */}
 
-      <div className="flex-1 overflow-y-auto px-2 space-y-1">
-        {recentChats.map(chat => (
-          <RecentChatCard key={chat.id} chat={chat} setActiveChat={setActiveChat} defaultPic={defaultPic} />
-        ))}
+      <div className="flex-1 overflow-y-auto px-2 space-y-2">
+        <AnimatePresence>
+          {recentChats.map(chat => (
+            <RecentChatCard 
+              key={chat.id} 
+              chat={chat} 
+              setActiveChat={setActiveChat} 
+              defaultPic={defaultPic} 
+              onHide={() => handleHideChat(chat.id)}
+            />
+          ))}
+        </AnimatePresence>
       </div>
     </div>
   );
 }
 
-function RecentChatCard({ chat, setActiveChat, defaultPic }) {
+function RecentChatCard({ chat, setActiveChat, defaultPic, onHide }) {
   const [otherUser, setOtherUser] = useState(null);
-  const [isHidden, setIsHidden] = useState(false);
   const user = auth.currentUser;
   const otherUserId = chat.participants?.find(p => p !== user?.uid);
   const myUnread = chat.unreadCount?.[user?.uid] || 0;
@@ -280,47 +304,30 @@ function RecentChatCard({ chat, setActiveChat, defaultPic }) {
 
   useEffect(() => {
     if (!otherUserId) return;
-    // Check if user manually hid this chat recently
-    const hiddenChats = JSON.parse(localStorage.getItem('hiddenChats') || '{}');
-    if (hiddenChats[chat.id] === chat.lastTimestamp?.seconds) {
-      setIsHidden(true);
-    }
-
     return onSnapshot(doc(db, "users", otherUserId), (snap) => {
       if (snap.exists()) setOtherUser({ id: snap.id, ...snap.data() });
     });
-  }, [otherUserId, chat.id, chat.lastTimestamp]);
-
-  const handleSwipeDelete = () => {
-    // Save to local storage so it stays hidden until a new message arrives
-    const hiddenChats = JSON.parse(localStorage.getItem('hiddenChats') || '{}');
-    hiddenChats[chat.id] = chat.lastTimestamp?.seconds;
-    localStorage.setItem('hiddenChats', JSON.stringify(hiddenChats));
-    setIsHidden(true);
-  };
-
-  if (isHidden) return null;
+  }, [otherUserId]);
 
   return (
-    <div className="relative overflow-hidden rounded-2xl mb-1">
-      {/* Red Background behind the chat */}
-      <div className="absolute inset-0 bg-red-600 flex items-center px-6 justify-start">
-        <Trash2 size={20} className="text-white animate-pulse" />
+    <div className="relative overflow-hidden rounded-2xl">
+      {/* Red Background behind the card when swiping */}
+      <div className="absolute inset-0 bg-red-600 flex items-center px-6 rounded-2xl">
+        <Trash2 size={20} className="text-white" />
       </div>
 
-      <motion.div
+      <motion.div 
         drag="x"
         dragConstraints={{ left: 0, right: 300 }}
         onDragEnd={(_, info) => {
-          if (info.offset.x > 150) handleSwipeDelete();
+          if (info.offset.x > 150) {
+            onHide(); // Trigger the hide logic
+          }
         }}
-        whileTap={{ 
-          scale: 0.98, 
-          boxShadow: "0px 0px 15px rgba(59, 130, 246, 0.5)",
-          zIndex: 10
-        }}
-        onClick={() => setActiveChat(otherUser)}
-        className={`relative flex items-center justify-between p-3 bg-[#0b0e11] cursor-pointer border-b border-white/5 ${myUnread > 0 ? 'bg-blue-500/5' : 'hover:bg-white/5'}`}
+        whileTap={{ scale: 0.98, boxShadow: "0px 0px 15px rgba(59, 130, 246, 0.5)" }}
+        onClick={() => setActiveChat(otherUser)} 
+        className={`relative z-10 flex items-center justify-between p-3 rounded-2xl cursor-pointer transition-colors ${myUnread > 0 ? 'bg-blue-500/10' : 'bg-[#16191d] hover:bg-white/5'}`}
+        style={{ border: '1px solid rgba(255,255,255,0.05)' }}
       >
         <div className="flex items-center gap-3">
           {myUnread > 0 && <div className="w-2.5 h-2.5 bg-red-600 rounded-full" />}
@@ -335,16 +342,12 @@ function RecentChatCard({ chat, setActiveChat, defaultPic }) {
               <h4 className="text-[15px] font-bold">{otherUser?.username || "Loading..."}</h4>
               <VerifiedBadge isVerified={otherUser?.isVerified} />
             </div>
-            <p className="text-[12px] text-gray-400 truncate w-40">
+            <p className="text-[12px] truncate w-40 text-gray-400">
               {isTyping ? <span className="text-blue-400 italic">Typing...</span> : chat.lastMessage}
             </p>
           </div>
         </div>
-        {myUnread > 0 && (
-          <div className="bg-red-600 px-1.5 py-0.5 rounded-full text-[10px] font-black text-white">
-            {myUnread}
-          </div>
-        )}
+        {myUnread > 0 && <div className="bg-red-600 px-1.5 rounded-full text-[10px] font-black text-white">{myUnread}</div>}
       </motion.div>
     </div>
   );
