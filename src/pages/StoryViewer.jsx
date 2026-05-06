@@ -33,31 +33,46 @@ const StoryViewer = () => {
   const STORY_DURATION = 15000;
 
   useEffect(() => {
-    const fetchStories = async () => {
+    const fetchAllStories = async () => {
       try {
         const now = Date.now();
+        // Fetch all active stories
         const q = query(
           collection(db, "stories"),
-          where("userId", "==", userId),
           where("expiresAt", ">", now),
           orderBy("expiresAt", "asc")
         );
         
         const snap = await getDocs(q);
-        const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const allData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         
-        if (data.length === 0) {
+        if (allData.length === 0) {
           navigate('/feed');
           return;
         }
-        setStories(data);
+
+        // Group stories by userId
+        const grouped = allData.reduce((acc, story) => {
+          if (!acc[story.userId]) acc[story.userId] = [];
+          acc[story.userId].push(story);
+          return acc;
+        }, {});
+
+        // Reorder groups so the clicked userId comes first
+        const userIds = Object.keys(grouped);
+        const sortedIds = [userId, ...userIds.filter(id => id !== userId)];
+        
+        // Flatten the sorted groups into a single array
+        const flattenedStories = sortedIds.flatMap(id => grouped[id] || []);
+        
+        setStories(flattenedStories);
         setLoading(false);
       } catch (err) {
         console.error("Story Fetch Error:", err);
         navigate('/feed');
       }
     };
-    fetchStories();
+    fetchAllStories();
   }, [userId, navigate]);
 
   useEffect(() => {
@@ -84,7 +99,8 @@ const StoryViewer = () => {
       setCurrentIndex(prev => prev + 1);
       setProgress(0);
     } else {
-      navigate(-1);
+      // No more stories from anyone, return to feed
+      navigate('/feed');
     }
   };
 
@@ -92,7 +108,29 @@ const StoryViewer = () => {
     if (currentIndex > 0) {
       setCurrentIndex(prev => prev - 1);
       setProgress(0);
+    } else {
+      // Optional: exit viewer if swiping back on the very first story
+      navigate(-1);
     }
+  };
+
+  // Logic for posting multiple stories at once
+  const postMultipleStories = async (files, userData) => {
+    for (const file of files) {
+      // Replace with your actual upload logic (Cloudinary/ImgBB)
+      const mediaUrl = await uploadMedia(file); 
+      await addDoc(collection(db, "stories"), {
+        userId: auth.currentUser.uid,
+        username: userData.username,
+        profilePic: userData.profilePic,
+        mediaUrl: mediaUrl,
+        mediaType: file.type.startsWith('video') ? 'video' : 'image',
+        createdAt: serverTimestamp(),
+        expiresAt: Date.now() + (24 * 60 * 60 * 1000), // 24 hours
+        likes: [],
+      });
+    }
+    alert("All stories posted!");
   };
 
   const currentStory = stories[currentIndex];
@@ -143,7 +181,9 @@ const StoryViewer = () => {
       try {
         await deleteDoc(doc(db, "stories", id));
         handleNext();
-      } catch (err) { console.error(err); }
+      } catch (err) { 
+        console.error(err); 
+      }
     }
   };
 
@@ -199,12 +239,15 @@ const StoryViewer = () => {
 
       {/* Header Info */}
       <div style={headerStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }} onClick={() => navigate(`/profile/${userId}`)}>
+        <div 
+          style={{ display: 'flex', alignItems: 'center', gap: '10px' }} 
+          onClick={() => navigate(`/profile/${currentStory.userId}`)}
+        >
           <img src={currentStory.profilePic} style={avatarStyle} alt="" />
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <span style={{ fontWeight: 'bold', fontSize: '14px' }}>{currentStory.username}</span>
-<span style={{ fontSize: '12px', color: '#888' }}>• {getTimeAgo(currentStory.createdAt)}</span>
+              <span style={{ fontSize: '12px', color: '#888' }}>• {getTimeAgo(currentStory.createdAt)}</span>
             </div>
             {currentStory.repostedFrom && <span style={{ fontSize: '9px', color: '#aaa' }}>Reposted from {currentStory.repostedFrom}</span>}
           </div>

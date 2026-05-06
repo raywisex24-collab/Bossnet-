@@ -67,45 +67,37 @@ export default function Feed() {
     const user = auth.currentUser;
     if (!user) return;
 
-    // We removed the 'where' filter to get EVERY story in the collection
-    const q = query(collection(db, "stories"));
+    const q = query(collection(db, "stories"), where("expiresAt", ">", Date.now()));
 
     const unsubStories = onSnapshot(q, (snap) => {
       const storyMap = {};
-      let selfHasStory = false;
-      const now = Date.now();
+      let selfHasActive = false;
 
       snap.docs.forEach(doc => {
         const data = doc.data();
-        const expiry = data.expiresAt;
-        
-        // Still filter for time so we don't see dead stories
-        if (expiry > now) {
-          if (data.userId === user.uid) {
-            selfHasStory = true;
-          } else {
-            // Only add to others if it's not you
-            if (!storyMap[data.userId]) {
-              storyMap[data.userId] = {
-                userId: data.userId,
-                username: data.username,
-                profilePic: data.profilePic,
-                createdAt: data.createdAt?.toMillis ? data.createdAt.toMillis() : 0 
-              };
-            }
+        if (data.userId === user.uid) {
+          selfHasActive = true;
+        } else {
+          if (!storyMap[data.userId]) {
+            storyMap[data.userId] = {
+              userId: data.userId,
+              username: data.username,
+              profilePic: data.profilePic,
+              createdAt: data.createdAt?.toMillis ? data.createdAt.toMillis() : Date.now()
+            };
           }
         }
       });
 
-      const allOtherStories = Object.values(storyMap)
-        .sort((a, b) => b.createdAt - a.createdAt);
-
-      setUserData(prev => ({ ...prev, hasActiveStory: selfHasStory }));
+      const allOtherStories = Object.values(storyMap).sort((a, b) => b.createdAt - a.createdAt);
+      
+      // We update a local state specifically for the story status to avoid overwriting userData
       setFollowingStories(allOtherStories);
+      setHasSelfStory(selfHasActive); // Add this new state: const [hasSelfStory, setHasSelfStory] = useState(false);
     });
 
     return () => unsubStories();
-  }, []); // Only runs once on mount
+  }, []);
 
 
   // 2. Real-time Comments Listener
@@ -317,7 +309,7 @@ export default function Feed() {
 <div className="flex items-center gap-3">
   <StoryAvatar 
     userId={post.userId} 
-    profilePic={post.userId === auth.currentUser.uid ? userData?.profilePic : post.userImg} 
+    profilePic={post.userImg} 
     size="40px" 
   />
   <div>
