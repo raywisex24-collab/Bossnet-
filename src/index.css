@@ -36,10 +36,8 @@
 
 [data-theme='rose'] {
   --bg-color: #fff1f2;
-  --text-color: #000000; /* Black text for light pink background */
+  --text-color: #1a1a1a; /* Forces dark charcoal text on pink bg */
   --accent-color: #fb7185;
-  --card-bg: #ffe4e6;
-  --glass-border: rgba(251, 113, 133, 0.2);
 }
 
 [data-theme='hacker'] {
@@ -80,10 +78,8 @@
 
 [data-theme='light'] {
   --bg-color: #ffffff;
-  --text-color: #000000; /* Black text for white background */
+  --text-color: #000000; /* Forces black text on white bg */
   --accent-color: #2563eb;
-  --card-bg: #f1f5f9;
-  --glass-border: rgba(0, 0, 0, 0.05);
 }
 
 [data-theme='royal'] {
@@ -122,10 +118,8 @@
 
 [data-theme='lavender'] {
   --bg-color: #faf5ff;
-  --text-color: #000000; /* Black text for light lavender background */
+  --text-color: #2e1065; /* Forces deep purple text on light purple bg */
   --accent-color: #d8b4fe;
-  --card-bg: #f3e8ff;
-  --glass-border: rgba(216, 180, 254, 0.3);
 }
 
 [data-theme='stealth'] {
@@ -173,9 +167,19 @@ svg {
   background-color: transparent !important;
 }
 
-/* Set global text color but leave it flexible for pages to override */
+/* Apply theme color generally, but allow utility classes to override */
 p, h1, h2, h3, h4, h5, h6, span, div, input, textarea {
   color: var(--text-color);
+}
+
+/* Force validation colors to ignore the theme */
+.text-green-500 { color: #22c55e !important; }
+.text-red-500 { color: #ef4444 !important; }
+.border-red-500 { border-color: #ef4444 !important; }
+
+/* Add this to allow gradients to breathe */
+.bg-clip-text {
+  color: transparent !important;
 }
 /* Image Carousel Snapping */
 .hide-scrollbar::-webkit-scrollbar {
@@ -197,5 +201,20 @@ p, h1, h2, h3, h4, h5, h6, span, div, input, textarea {
   background: linear-gradient(to right, #f39c12, #e67e22, #9b59b6);
   border-radius: 50%;
   display: inline-block;
+}
+
+/* --- THE VALIDATION LOCK --- */
+/* This prevents themes from turning your Red 'X' or Green 'Check' into white/black */
+
+.text-green-500 { 
+  color: #22c55e !important; 
+}
+
+.text-red-500 { 
+  color: #ef4444 !important; 
+}
+
+.border-red-500 { 
+  border-color: #ef4444 !important; 
 }
 

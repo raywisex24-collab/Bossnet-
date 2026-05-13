@@ -12,7 +12,7 @@ export default function PreSplash() {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-between py-24 bg-black">
+    <div className="min-h-screen w-full flex flex-col items-center justify-between py-24 bg-[#0b0e11]">
       {/* Logo Container - Shrunken for Mobile */}
       <div className="flex-1 flex items-center justify-center p-6">
         <img 
@@ -24,15 +24,22 @@ export default function PreSplash() {
 
       {/* Text Container */}
       <div className="w-full max-w-[500px] text-center px-6">
-        <h1 className="text-4xl font-black mb-2 tracking-tight">
-          <span className="bg-gradient-to-r from-[#f39c12] via-[#e67e22] to-[#9b59b6] bg-clip-text text-transparent">
+        <h1 className="text-5xl font-black mb-3 tracking-tighter">
+          <span 
+            className="bg-clip-text text-transparent"
+            style={{
+              backgroundImage: 'linear-gradient(to right, #9b59b6, #3498db, #e67e22, #f1c40f)',
+              WebkitBackgroundClip: 'text'
+            }}
+          >
             Bossnet
           </span>
         </h1>
-        <p className="text-xl font-bold text-white tracking-widest uppercase opacity-90">
+        <p className="text-sm font-bold text-zinc-400 tracking-[0.3em] uppercase">
           Connect, Innovate, and Lead.
         </p>
       </div>
     </div>
   );
 }
+

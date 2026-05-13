@@ -133,16 +133,16 @@ const Settings = () => {
     {
       title: "LOGIN",
       items: [
-        { icon: <UserPlus size={22} strokeWidth={2.5} className="text-[#0095f6]"/>, label: "Add account", color: "text-[#0095f6]" },
-        { icon: <RefreshCw size={22} strokeWidth={2.5} className="text-[#0095f6]"/>, label: "Switch account", color: "text-[#0095f6]" },
+        { icon: <UserPlus size={22} strokeWidth={2.5}/>, label: "Add account", color: "text-[#ed4956]" },
+        { icon: <RefreshCw size={22} strokeWidth={2.5}/>, label: "Switch account", color: "text-[#ed4956]" },
         { 
-          icon: <LogOut size={22} strokeWidth={2.5} className="text-[#ed4956]"/>, 
+          icon: <LogOut size={22} strokeWidth={2.5}/>, 
           label: "Log out", 
           color: "text-[#ed4956]",
           onClick: handleLogout 
         },
         { 
-          icon: <Trash2 size={22} strokeWidth={2.5} className="text-[#ed4956]"/>, 
+          icon: <Trash2 size={22} strokeWidth={2.5}/>, 
           label: "Delete profile", 
           color: "text-[#ed4956]",
           onClick: () => navigate('/delete-account')
@@ -176,9 +176,12 @@ const Settings = () => {
                   <span className={item.color || "text-boss-text group-active:scale-110 transition-transform"}>
                     {item.icon}
                   </span>
-                  <span className={`text-[17px] font-extrabold tracking-tight ${item.color || "text-zinc-100"}`}>
-                    {item.label}
-                  </span>
+<span 
+  className="text-[17px] font-extrabold tracking-tight" 
+  style={item.color ? { color: '#ed4956' } : { color: 'var(--text-color)' }}
+>
+  {item.label}
+</span>
                 </div>
                 <div className="flex items-center gap-3">
                   {item.rightText && <span className="text-zinc-400 font-bold text-sm uppercase tracking-wider">{item.rightText}</span>}

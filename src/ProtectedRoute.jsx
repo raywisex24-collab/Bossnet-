@@ -18,7 +18,8 @@ const ProtectedRoute = ({ children }) => {
           // ✅ CHECK FIRESTORE FOR USERNAME
           const userDoc = await getDoc(doc(db, "users", currentUser.uid));
           
-          if (userDoc.exists() && userDoc.data().username) {
+          // ✅ CHECK IF ONBOARDING IS ACTUALLY FINISHED
+          if (userDoc.exists() && userDoc.data().onboardingComplete === true) {
             setHasUsername(true);
           } else {
             setHasUsername(false);
@@ -62,4 +63,3 @@ const ProtectedRoute = ({ children }) => {
 };
 
 export default ProtectedRoute;
-

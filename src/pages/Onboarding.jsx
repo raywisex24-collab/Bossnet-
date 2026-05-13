@@ -108,6 +108,8 @@ export default function Onboarding() {
 
   const handleFinish = async () => {
     if (!isUsernameValid) return Swal.fire("Error", "Username is taken", "error");
+    if (!username || username.length < 3) return Swal.fire("Error", "Username too short", "error");
+    
     setLoading(true);
     try {
       await setDoc(doc(db, "users", auth.currentUser.uid), {
@@ -120,9 +122,12 @@ export default function Onboarding() {
         profilePic: profilePic,
         createdAt: serverTimestamp(),
         onboardingComplete: true,
-        isVerified: false // ✅ Set to false so new users don't get verified automatically
+        usernameLastChanged: serverTimestamp(), // Lock date
+        isVerified: false 
       }, { merge: true });
-      navigate('/feed');
+      
+      // Navigate and force a reload to update ProtectedRoute state
+      window.location.href = '/feed';
     } catch (error) {
       Swal.fire("Error", "Save failed", "error");
     } finally {
