@@ -55,8 +55,24 @@ export default function DeleteAccount() {
       const reelsQuery = query(collection(db, "videos"), where("userId", "==", userId));
       const reelsSnapshot = await getDocs(reelsQuery);
       reelsSnapshot.forEach((doc) => batch.delete(doc.ref));
+      // Delete all comments made by this user across the entire app
+      const commentsQuery = query(collectionGroup(db, "comments"), where("userId", "==", userId));
+      const commentDocs = await getDocs(commentsQuery);
+      commentDocs.forEach((comment) => batch.delete(comment.ref));
+
+      // Remove this user from everyone else's followers/following arrays
+      const followersQuery = query(collection(db, "users"), where("followers", "array-contains", userId));
+      const followingQuery = query(collection(db, "users"), where("following", "array-contains", userId));
+      
+      const [follSnap, fingSnap] = await Promise.all([getDocs(followersQuery), getDocs(followingQuery)]);
+      
+      follSnap.forEach(uDoc => batch.update(uDoc.ref, { followers: arrayRemove(userId) }));
+      fingSnap.forEach(uDoc => batch.update(uDoc.ref, { following: arrayRemove(userId) }));
+
+      // Delete the actual user profile
       const userRef = doc(db, "users", userId);
       batch.delete(userRef);
+
       await batch.commit();
       await deleteUser(user);
       await Swal.fire({ title: 'DELETED', icon: 'success', background: '#1a0000', color: '#ffffff' });

@@ -126,18 +126,21 @@ export default function SignUp() {
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center py-12 px-4 bg-[#020205] relative overflow-hidden">
+<div 
+  className="min-h-screen w-full flex flex-col items-center justify-center py-12 px-4 font-sans relative overflow-hidden"
+  style={{
+    background: "linear-gradient(135deg, #ff9d00 0%, #1877f2 35%, #8e44ad 70%, #d1f2eb 100%)"
+  }}
+>
       
-      {/* Background Nebula */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: `linear-gradient(#4f4f5e 1px, transparent 1px), linear-gradient(90deg, #4f4f5e 1px, transparent 1px)`, backgroundSize: '50px 50px' }}></div>
-        <div className="absolute top-[5%] left-[-5%] w-[80%] h-[70%] bg-[radial-gradient(circle,rgba(142,68,173,0.18)_0%,transparent_70%)] blur-[100px]"></div>
-        <div className="absolute bottom-[0%] right-[-5%] w-[75%] h-[60%] bg-[radial-gradient(circle,rgba(24,119,242,0.18)_0%,transparent_70%)] blur-[100px]"></div>
+      {/* Pattern Overlay */}
+      <div className="absolute inset-0 opacity-[0.05] pointer-events-none z-0" 
+           style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")` }}>
       </div>
 
-      <h1 className="relative z-10 text-5xl md:text-6xl font-black mb-10 tracking-tight bg-gradient-to-r from-[#f39c12] via-[#e67e22] to-[#9b59b6] bg-clip-text text-transparent drop-shadow-[0_10px_10px_rgba(0,0,0,0.5)]">
-        Join Bossnet
-      </h1>
+<h1 className="relative z-10 text-5xl md:text-6xl font-extrabold mb-10 bg-gradient-to-r from-[#ff9d00] to-[#8e44ad] bg-clip-text text-transparent drop-shadow-md">
+  Join Bossnet
+</h1>
 
       <div className="w-full max-w-md z-10">
         <button 
@@ -147,7 +150,7 @@ export default function SignUp() {
           <span>←</span> Back to Login
         </button>
 
-        <form onSubmit={handleSignUp} className="space-y-5 bg-[#1a1a20]/40 p-6 rounded-[2rem] border border-white/5 backdrop-blur-md">
+          <form onSubmit={handleSignUp} className="space-y-5 bg-[#0f172a]/90 p-8 rounded-[40px] border border-white/10 backdrop-blur-2xl shadow-2xl relative z-10">
           <h2 className="text-xl font-semibold text-boss-text text-center mb-2">Create Account</h2>
           
           <div className="flex gap-3">
@@ -210,4 +213,3 @@ export default function SignUp() {
     </div>
   );
 }
-
