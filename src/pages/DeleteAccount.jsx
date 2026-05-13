@@ -70,7 +70,7 @@ export default function DeleteAccount() {
         console.log("Comment index note: If this fails, create a Collection Group index in Firebase Console.");
       }
 
-      // 5. SCRUB NOTIFICATIONS (To and From user)
+      // 5. SCRUB NOTIFICATION (To and From user)
       const notifToQuery = query(collection(db, "notifications"), where("toUserId", "==", userId));
       const notifFromQuery = query(collection(db, "notifications"), where("fromUserId", "==", userId));
       const [toSnap, fromSnap] = await Promise.all([getDocs(notifToQuery), getDocs(notifFromQuery)]);
@@ -160,11 +160,22 @@ export default function DeleteAccount() {
   ];
 
   return (
-    <div className="min-h-screen bg-white text-black flex flex-col font-sans">
-      <div className="p-5 flex items-center border-b border-gray-100 sticky top-0 bg-white/90 backdrop-blur-md z-50">
-        <ArrowLeft onClick={() => navigate(-1)} className="cursor-pointer mr-6 text-gray-900" size={28} />
-        <h1 className="text-xl font-extrabold tracking-tight text-gray-900">Account Deletion</h1>
-      </div>
+<div 
+  className="min-h-screen flex flex-col font-sans relative overflow-hidden"
+  style={{ 
+    backgroundColor: '#7f1d1d', // Deep Red
+    color: 'white',
+    backgroundImage: `url("https://www.transparenttextures.com/patterns/carbon-fibre.png"), linear-gradient(rgba(127, 29, 29, 0.9), rgba(127, 29, 29, 0.9))`,
+  }}
+>
+  {/* Floating Danger Signs Background */}
+  <div className="absolute inset-0 opacity-10 pointer-events-none flex flex-wrap gap-20 p-10 justify-center">
+    {[...Array(20)].map((_, i) => <AlertTriangle key={i} size={100} strokeWidth={1} />)}
+  </div>
+<div className="p-5 flex items-center border-b border-white/10 sticky top-0 bg-red-950/50 backdrop-blur-md z-50">
+  <ArrowLeft onClick={() => navigate(-1)} className="cursor-pointer mr-6 text-white" size={28} />
+  <h1 className="text-xl font-extrabold tracking-tight text-white">Account Deletion</h1>
+</div>
 
       <div className="flex-1 overflow-y-auto">
         <div className="p-10 text-center border-b border-gray-50">
@@ -183,7 +194,7 @@ export default function DeleteAccount() {
               placeholder="Confirm account email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full pl-12 pr-4 py-5 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:outline-none focus:border-black focus:bg-white transition-all text-base font-bold"
+className="w-full pl-12 pr-4 py-5 bg-white border-4 border-red-600 rounded-2xl focus:outline-none focus:ring-4 focus:ring-red-500/50 text-black text-lg font-black placeholder:text-gray-400"
             />
           </div>
           <div className="relative">
@@ -193,7 +204,7 @@ export default function DeleteAccount() {
               placeholder="Confirm password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full pl-12 pr-4 py-5 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:outline-none focus:border-black focus:bg-white transition-all text-base font-bold"
+className="w-full pl-12 pr-4 py-5 bg-white border-4 border-red-600 rounded-2xl focus:outline-none focus:ring-4 focus:ring-red-500/50 text-black text-lg font-black placeholder:text-gray-400"
             />
           </div>
         </div>
