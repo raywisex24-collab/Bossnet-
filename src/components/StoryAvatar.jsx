@@ -71,7 +71,7 @@ export default function StoryAvatar({ userId, profilePic, size = "40px" }) {
     >
       <div className="w-full h-full rounded-full bg-[#0b0e11] p-[1.5px]">
         <img 
-          src={profilePic || defaultPic} 
+src={(profilePic && profilePic !== "") ? profilePic : defaultPic}
           className="w-full h-full rounded-full object-cover bg-zinc-800"
           alt="avatar"
           onError={(e) => { e.target.src = defaultPic; }}
