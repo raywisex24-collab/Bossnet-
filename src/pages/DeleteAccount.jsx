@@ -23,8 +23,18 @@ export default function DeleteAccount() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [sectionChecks, setSectionChecks] = useState(new Array(7).fill(false));
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const toggleSection = (index) => {
+    const updatedChecks = [...sectionChecks];
+    updatedChecks[index] = !updatedChecks[index];
+    setSectionChecks(updatedChecks);
+  };
+
+  const checkAll = () => setSectionChecks(new Array(7).fill(true));
+  const allSectionsChecked = sectionChecks.every(Boolean);
 
   const handleDeleteProcess = async () => {
     const user = auth.currentUser;
@@ -89,13 +99,38 @@ export default function DeleteAccount() {
 
         {/* Content */}
         <div className="p-6 space-y-10 pb-10">
-          <h3 className="text-[10px] font-black text-red-400 uppercase tracking-[3px]">Loss Disclosure</h3>
+          <div className="flex justify-between items-center border-b border-white/10 pb-3">
+            <h3 className="text-[10px] font-black text-red-400 uppercase tracking-[3px]">Loss Disclosure</h3>
+            <button 
+              onClick={checkAll}
+              className="text-[9px] bg-blue-600 text-white px-3 py-1 rounded-full font-black uppercase active:scale-95"
+            >
+              Check All
+            </button>
+          </div>
+          
           {sections.map((section, idx) => (
-            <div key={idx} className="flex gap-5">
-              <div className="shrink-0">{section.icon}</div>
-              <div>
-                <h4 className="font-black text-white text-base mb-1">{section.title}</h4>
-                <p className="text-red-100/60 text-xs leading-relaxed font-bold">{section.content}</p>
+            <div key={idx} className="space-y-4">
+              <div className="flex gap-5">
+                <div className="shrink-0">{section.icon}</div>
+                <div>
+                  <h4 className="font-black text-white text-base mb-1">{section.title}</h4>
+                  <p className="text-red-100/60 text-xs leading-relaxed font-bold">{section.content}</p>
+                </div>
+              </div>
+              {/* Blue Checkbox for each section */}
+              <div 
+                onClick={() => toggleSection(idx)}
+                className="ml-11 flex items-center gap-3 cursor-pointer group"
+              >
+                <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+                  sectionChecks[idx] ? 'bg-blue-600 border-blue-600' : 'border-white/30 group-hover:border-white'
+                }`}>
+                  {sectionChecks[idx] && <Check size={14} className="text-white stroke-[4px]" />}
+                </div>
+                <span className={`text-[10px] font-black uppercase ${sectionChecks[idx] ? 'text-blue-400' : 'text-white/40'}`}>
+                  I Accept
+                </span>
               </div>
             </div>
           ))}
@@ -132,9 +167,13 @@ export default function DeleteAccount() {
       {/* Footer - No White Space */}
       <div style={{ backgroundColor: '#7f1d1d' }} className="p-6 border-t border-white/10">
         <div 
-          onClick={() => setIsConfirmed(!isConfirmed)}
+          onClick={() => {
+            if (allSectionsChecked) setIsConfirmed(!isConfirmed);
+          }}
           style={{ backgroundColor: '#1a0000' }}
-          className="flex items-center gap-4 p-4 rounded-xl cursor-pointer active:scale-95 border border-white/5"
+          className={`flex items-center gap-4 p-4 rounded-xl transition-all border border-white/5 ${
+            allSectionsChecked ? 'cursor-pointer active:scale-95' : 'opacity-40 cursor-not-allowed'
+          }`}
         >
           <div className={`shrink-0 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${
             isConfirmed ? 'bg-red-500 border-red-500' : 'bg-transparent border-white/30'
@@ -162,4 +201,3 @@ export default function DeleteAccount() {
     </div>
   );
 }
-
