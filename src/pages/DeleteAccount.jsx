@@ -29,228 +29,134 @@ export default function DeleteAccount() {
   const handleDeleteProcess = async () => {
     const user = auth.currentUser;
     if (!user) return;
-
     if (!email || !password) {
-      Swal.fire({
-        title: 'Required Fields',
-        text: 'Please enter your email and password to verify ownership.',
-        icon: 'error',
-        background: '#ffffff',
-        color: '#000000'
-      });
+      Swal.fire({ title: 'Required', text: 'Enter email and password.', icon: 'error', background: '#1a0000', color: '#ffffff' });
       return;
     }
-
     setLoading(true);
-
     try {
-      // 1. Re-authenticate user for security
       const credential = EmailAuthProvider.credential(email, password);
       await reauthenticateWithCredential(user, credential);
-
       const batch = writeBatch(db);
       const userId = user.uid;
-
-      // 2. SCRUB POSTS
       const postsQuery = query(collection(db, "posts"), where("userId", "==", userId));
       const postsSnapshot = await getDocs(postsQuery);
       postsSnapshot.forEach((doc) => batch.delete(doc.ref));
-
-      // 3. SCRUB REELS/VIDEOS
       const reelsQuery = query(collection(db, "videos"), where("userId", "==", userId));
       const reelsSnapshot = await getDocs(reelsQuery);
       reelsSnapshot.forEach((doc) => batch.delete(doc.ref));
-
-      // 4. SCRUB COMMENTS (Across all posts in the app)
-      try {
-        const commentsQuery = query(collectionGroup(db, "comments"), where("userId", "==", userId));
-        const commentDocs = await getDocs(commentsQuery);
-        commentDocs.forEach((comment) => batch.delete(comment.ref));
-      } catch (e) {
-        console.log("Comment index note: If this fails, create a Collection Group index in Firebase Console.");
-      }
-
-      // 5. SCRUB NOTIFICATION (To and From user)
-      const notifToQuery = query(collection(db, "notifications"), where("toUserId", "==", userId));
-      const notifFromQuery = query(collection(db, "notifications"), where("fromUserId", "==", userId));
-      const [toSnap, fromSnap] = await Promise.all([getDocs(notifToQuery), getDocs(notifFromQuery)]);
-      toSnap.forEach(d => batch.delete(d.ref));
-      fromSnap.forEach(d => batch.delete(d.ref));
-
-      // 6. SCRUB RELATIONSHIPS (Remove user ID from other people's arrays)
-      const followersQuery = query(collection(db, "users"), where("followers", "array-contains", userId));
-      const followingQuery = query(collection(db, "users"), where("following", "array-contains", userId));
-      const [follSnap, fingSnap] = await Promise.all([getDocs(followersQuery), getDocs(followingQuery)]);
-      
-      follSnap.forEach(uDoc => batch.update(uDoc.ref, { followers: arrayRemove(userId) }));
-      fingSnap.forEach(uDoc => batch.update(uDoc.ref, { following: arrayRemove(userId) }));
-
-      // 7. DELETE USER PROFILE DOCUMENT
       const userRef = doc(db, "users", userId);
       batch.delete(userRef);
-
-      // --- COMMIT ALL DATA DELETIONS ---
       await batch.commit();
-
-      // 8. DELETE THE AUTHENTICATION ACCOUNT
       await deleteUser(user);
-
-      await Swal.fire({
-        title: 'ACCOUNT DELETED',
-        text: 'Your profile and data have been permanently removed.',
-        icon: 'success',
-        background: '#ffffff',
-        color: '#000000'
-      });
-
+      await Swal.fire({ title: 'DELETED', icon: 'success', background: '#1a0000', color: '#ffffff' });
       navigate('/login', { replace: true });
     } catch (error) {
-      console.error(error);
-      let errorMessage = "Verification failed. Please check your credentials.";
-      if (error.code === 'auth/wrong-password') errorMessage = "The password you entered is incorrect.";
-      
-      Swal.fire({
-        title: 'Authentication Error',
-        text: errorMessage,
-        icon: 'error',
-        background: '#ffffff',
-        color: '#000000'
-      });
+      Swal.fire({ title: 'Error', text: "Verification failed.", icon: 'error', background: '#1a0000', color: '#ffffff' });
     } finally {
       setLoading(false);
     }
   };
 
   const sections = [
-    {
-      icon: <Globe className="text-blue-600" size={24} />,
-      title: "Public Identity & Handle",
-      content: "Your unique username and display name will be released immediately. The handle may be claimed by any new or existing member."
-    },
-    {
-      icon: <Zap className="text-yellow-600" size={24} />,
-      title: "Account Status & Verification",
-      content: "All account milestones, including verified status and badges, will be permanently revoked and cannot be restored."
-    },
-    {
-      icon: <Image className="text-purple-600" size={24} />,
-      title: "Media & Content Purge",
-      content: "All uploaded media, including videos, reels, and photos, will be permanently removed from our storage servers."
-    },
-    {
-      icon: <Users className="text-green-600" size={24} />,
-      title: "Network & Connections",
-      content: "Your entire network of followers and the list of accounts you follow will be wiped. All professional connections will be severed."
-    },
-    {
-      icon: <Heart className="text-red-600" size={24} />,
-      title: "Interactions & Engagement",
-      content: "Historic interactions, including likes, comments, and saved collections, will be scrubbed from the platform's database."
-    },
-    {
-      icon: <MessageSquare className="text-indigo-600" size={24} />,
-      title: "Private Communications",
-      content: "Access to your messaging inbox and all historical conversations will be terminated and permanently inaccessible."
-    },
-    {
-      icon: <ShieldAlert className="text-orange-600" size={24} />,
-      title: "Tool & Feature Access",
-      content: "You will lose access to all integrated professional tools, dashboard customizations, and premium features."
-    }
+    { icon: <Globe className="text-blue-400" size={24} />, title: "Public Identity", content: "Your unique username and display name will be released immediately upon confirmation of this action. Once released, the handle will become publicly available and may be claimed at any time by any existing or newly registered member without restriction. Access to the username and display name cannot be guaranteed after release, as availability will be determined on a first-come, first-served basis. Any association, visibility, recognition, or account identity connected to the current handle may no longer remain linked after the process has been completed." },
+    { icon: <Zap className="text-yellow-400" size={24} />, title: "Verification", content: "All badges, achievements, milestones, account recognitions, status indicators, and associated privileges connected to the account will be permanently revoked and removed immediately following confirmation of this action. This includes, but is not limited to, verification marks, contribution acknowledgements, participation rewards, ranking history, exclusive access benefits, loyalty indicators, and any publicly visible accomplishments previously earned or assigned to the account. Once revoked, these items may no longer be accessible, recoverable, transferable, or reinstated, and any historical association tied to them may be permanently cleared from the account’s active profile and visibility across the platform." },
+    { icon: <Image className="text-purple-400" size={24} />, title: "Media Purge", content: "All Bossnet reels, photos, media uploads, visual content, archived posts, and associated gallery items connected to the account will be permanently removed from public visibility and account storage immediately upon completion of this action. This removal includes all published and unpublished media, edited versions, saved drafts, highlights, tagged visual content, and any associated engagement history linked to the affected uploads. Once permanently deleted, the content may no longer be recoverable, restored, transferred, or accessed through the account or any connected Bossnet services, and any references, previews, thumbnails, or visibility associated with the removed media may also be cleared from the platform over time." },
+    { icon: <Users className="text-green-400" size={24} />, title: "Network", content: "All followers, following lists, social connections, subscription records, mutual account links, and related network activity associated with the account have been permanently cleared and removed from visibility. This action includes the complete removal of follower counts, followed accounts, pending connection requests, accepted requests, close connections, suggested relationship history, and any linked social interaction data connected to the profile. Once the process has been completed, previously established account connections may no longer appear across the platform, and the associated network history may not be recoverable, restorable, or transferable through future account activity or system requests." },
+    { icon: <Heart className="text-red-400" size={24} />, title: "Interactions", content: "All likes, comments, reactions, replies, engagement history, and associated interaction records connected to the account have been permanently scrubbed and removed from platform visibility and activity logs. This includes reactions made on posts, reels, photos, stories, shared content, community discussions, and any previously published interactions associated with the account across supported sections of the platform. In addition, all written responses, public feedback, comment threads, pinned interactions, and engagement-related activity tied to the account may no longer remain accessible to other users or linked to existing content. Once this action has been finalized, the removed interaction history may not be recoverable, restorable, or reinstated through future account access, recovery requests, or profile synchronization processes." },
+    { icon: <MessageSquare className="text-indigo-400" size={24} />, title: "Private Messages", content: "All historical conversations, message records, archived chats, shared media exchanges, communication logs, and associated interaction history connected to the account have been permanently terminated and removed from active access. This action includes the deletion of direct messages, group conversations, temporary chats, archived threads, synchronized message history, shared attachments, voice notes, and any related communication data previously linked to the account across supported services and connected devices. Following completion of this process, terminated conversations may no longer be visible, accessible, retrievable, or recoverable through account restoration, synchronization, backup access, or future login activity, and any associated references or conversation history may be permanently cleared from platform records over time." },
+    { icon: <ShieldAlert className="text-orange-400" size={24} />, title: "Pro Tools", content: "Access to all Bossnet premium features, subscription privileges, enhanced account tools, exclusive platform benefits, and member-only services has been permanently terminated and disabled for the account. This includes the removal of advanced customization options, priority access tools, premium visibility enhancements, monetization features, exclusive content privileges, expanded storage access, verification-related benefits, early feature availability, and any additional services previously granted through an active premium status or subscription plan. Upon completion of this action, the account will no longer retain access to restricted premium functionality, and any associated subscription history, entitlement records, or feature-based privileges may no longer remain active, recoverable, transferable, or eligible for reinstatement without a new authorization or subscription process through Bossnet." }
   ];
 
   return (
-<div 
-  className="min-h-screen flex flex-col font-sans relative overflow-hidden"
-  style={{ 
-    backgroundColor: '#7f1d1d', // Deep Red
-    color: 'white',
-    backgroundImage: `url("https://www.transparenttextures.com/patterns/carbon-fibre.png"), linear-gradient(rgba(127, 29, 29, 0.9), rgba(127, 29, 29, 0.9))`,
-  }}
->
-  {/* Floating Danger Signs Background */}
-  <div className="absolute inset-0 opacity-10 pointer-events-none flex flex-wrap gap-20 p-10 justify-center">
-    {[...Array(20)].map((_, i) => <AlertTriangle key={i} size={100} strokeWidth={1} />)}
-  </div>
-<div className="p-5 flex items-center border-b border-white/10 sticky top-0 bg-red-950/50 backdrop-blur-md z-50">
-  <ArrowLeft onClick={() => navigate(-1)} className="cursor-pointer mr-6 text-white" size={28} />
-  <h1 className="text-xl font-extrabold tracking-tight text-white">Account Deletion</h1>
-</div>
+    <div style={{ backgroundColor: '#450a0a', color: '#ffffff' }} className="min-h-screen flex flex-col font-sans relative overflow-hidden">
+      
+      {/* Fixed Header */}
+      <div style={{ backgroundColor: '#7f1d1d' }} className="p-5 flex items-center border-b border-white/10 sticky top-0 z-50">
+        <ArrowLeft onClick={() => navigate(-1)} className="cursor-pointer mr-6 text-white" size={28} />
+        <h1 className="text-xl font-black text-white uppercase">Account Deletion</h1>
+      </div>
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-10 text-center border-b border-gray-50">
-          <div className="w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center mx-auto mb-6 transform rotate-3">
-            <AlertTriangle size={40} className="text-red-500" />
+      <div className="flex-1 overflow-y-auto bg-black/20">
+        {/* Banner */}
+        <div style={{ backgroundColor: '#1a0000' }} className="p-10 text-center border-b border-white/5">
+          <div className="w-16 h-16 bg-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl">
+            <AlertTriangle size={32} className="text-white" />
           </div>
-          <h2 className="text-3xl font-black text-gray-900 leading-tight">Permanent Action</h2>
-          <p className="text-gray-600 mt-3 text-base font-bold">Review the impact and verify ownership below.</p>
+          <h2 className="text-2xl font-black text-white uppercase">Permanent Action</h2>
+          <p className="text-red-300 text-sm font-bold">This cannot be undone.</p>
         </div>
 
-        <div className="p-6 space-y-5">
+        {/* Content */}
+        <div className="p-6 space-y-10 pb-10">
+          <h3 className="text-[10px] font-black text-red-400 uppercase tracking-[3px]">Loss Disclosure</h3>
+          {sections.map((section, idx) => (
+            <div key={idx} className="flex gap-5">
+              <div className="shrink-0">{section.icon}</div>
+              <div>
+                <h4 className="font-black text-white text-base mb-1">{section.title}</h4>
+                <p className="text-red-100/60 text-xs leading-relaxed font-bold">{section.content}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Inputs at the bottom of scroll */}
+        <div style={{ backgroundColor: '#1a0000' }} className="p-6 space-y-4 border-t border-white/10">
+          <p className="text-[10px] font-black text-white uppercase tracking-[2px]">Confirm Ownership</p>
           <div className="relative">
-            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-red-500" size={18} />
             <input 
               type="email" 
               placeholder="Confirm account email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-className="w-full pl-12 pr-4 py-5 bg-white border-4 border-red-600 rounded-2xl focus:outline-none focus:ring-4 focus:ring-red-500/50 text-black text-lg font-black placeholder:text-gray-400"
+              style={{ backgroundColor: '#ffffff', color: '#000000' }}
+              className="w-full pl-12 pr-4 py-4 rounded-xl focus:outline-none text-base font-black placeholder:text-gray-400 border-2 border-red-600"
             />
           </div>
           <div className="relative">
-            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-red-500" size={18} />
             <input 
               type="password" 
               placeholder="Confirm password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-className="w-full pl-12 pr-4 py-5 bg-white border-4 border-red-600 rounded-2xl focus:outline-none focus:ring-4 focus:ring-red-500/50 text-black text-lg font-black placeholder:text-gray-400"
+              style={{ backgroundColor: '#ffffff', color: '#000000' }}
+              className="w-full pl-12 pr-4 py-4 rounded-xl focus:outline-none text-base font-black placeholder:text-gray-400 border-2 border-red-600"
             />
           </div>
         </div>
-
-        <div className="p-6 space-y-12 pb-32">
-          <h3 className="text-xs font-black text-gray-400 uppercase tracking-[3px] border-b-2 border-gray-100 pb-3">Loss Disclosure</h3>
-          {sections.map((section, idx) => (
-            <div key={idx} className="flex gap-6">
-              <div className="mt-1 shrink-0">{section.icon}</div>
-              <div>
-                <h4 className="font-black text-gray-900 text-lg mb-1">{section.title}</h4>
-                <p className="text-gray-600 text-sm leading-relaxed font-bold">
-                  {section.content}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
 
-      <div className="p-6 bg-white border-t-2 border-gray-100 shadow-[0_-15px_50px_rgba(0,0,0,0.05)]">
+      {/* Footer - No White Space */}
+      <div style={{ backgroundColor: '#7f1d1d' }} className="p-6 border-t border-white/10">
         <div 
           onClick={() => setIsConfirmed(!isConfirmed)}
-          className="flex items-start gap-4 p-5 rounded-2xl cursor-pointer group transition-all active:scale-95"
+          style={{ backgroundColor: '#1a0000' }}
+          className="flex items-center gap-4 p-4 rounded-xl cursor-pointer active:scale-95 border border-white/5"
         >
-          <div className={`mt-1 shrink-0 w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-all ${
-            isConfirmed ? 'bg-red-500 border-red-500' : 'bg-white border-gray-300 group-hover:border-gray-900'
+          <div className={`shrink-0 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${
+            isConfirmed ? 'bg-red-500 border-red-500' : 'bg-transparent border-white/30'
           }`}>
-            {isConfirmed && <Check size={18} className="text-boss-text stroke-[4px]" />}
+            {isConfirmed && <Check size={16} className="text-white" />}
           </div>
           <div>
-            <p className="font-black text-base text-gray-900">Acknowledge Consequences</p>
-            <p className="text-sm text-gray-500 font-bold mt-1 leading-tight">I understand that all data associated with this profile is non-recoverable.</p>
+            <p className="font-black text-sm text-white">Acknowledge</p>
+            <p className="text-[10px] text-red-300 font-bold">Data is non-recoverable.</p>
           </div>
         </div>
 
         <button
           disabled={!isConfirmed || loading}
           onClick={handleDeleteProcess}
-          className={`w-full py-5 mt-4 rounded-2xl font-black uppercase text-xs tracking-[3px] transition-all shadow-xl ${
+          className={`w-full py-4 mt-4 rounded-xl font-black uppercase text-[10px] tracking-[2px] transition-all ${
             isConfirmed 
-              ? 'bg-red-600 text-boss-text shadow-red-200 active:bg-red-700' 
-              : 'bg-gray-100 text-gray-300 cursor-not-allowed shadow-none'
+              ? 'bg-red-600 text-white shadow-lg active:bg-red-700' 
+              : 'bg-white/5 text-white/20 cursor-not-allowed'
           }`}
         >
-          {loading ? "Wiping Data..." : "Confirm Permanent Deletion"}
+          {loading ? "Wiping..." : "Delete Permanently"}
         </button>
       </div>
     </div>
