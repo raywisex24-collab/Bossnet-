@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { Check } from 'lucide-react';
 import { auth, db } from '../firebase'; 
 import Swal from 'sweetalert2';
 import { collection, query, where, getDocs } from 'firebase/firestore';
@@ -13,6 +14,7 @@ export default function SignUp() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   
   const [isAvailable, setIsAvailable] = useState(null); 
   const [suggestions, setSuggestions] = useState([]);
@@ -205,7 +207,37 @@ export default function SignUp() {
             </button>
           </div>
 
-          <button type="submit" className="w-full h-14 mt-4 rounded-full bg-gradient-to-r from-[#8e44ad] to-[#1877f2] text-boss-text font-bold shadow-lg active:scale-95 transition-all">
+          {/* Terms and Conditions Checkbox */}
+          <div className="flex items-center justify-between px-2 mt-2">
+            <div 
+              onClick={() => setTermsAccepted(!termsAccepted)}
+              className="flex items-center gap-3 cursor-pointer group"
+            >
+              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
+                termsAccepted ? 'bg-blue-600 border-blue-600' : 'border-white/30 group-hover:border-white'
+              }`}>
+                {termsAccepted && <Check size={14} className="text-white stroke-[4px]" />}
+              </div>
+              <span className="text-xs font-bold text-boss-text/80 uppercase">I Agree</span>
+            </div>
+            
+            <Link 
+              to="/terms" 
+              className="text-xs font-bold text-blue-400 hover:text-blue-300 underline uppercase tracking-wider"
+            >
+              Read Terms
+            </Link>
+          </div>
+
+          <button 
+            type="submit" 
+            disabled={!termsAccepted}
+            className={`w-full h-14 mt-4 rounded-full font-bold shadow-lg transition-all ${
+              termsAccepted 
+                ? 'bg-gradient-to-r from-[#8e44ad] to-[#1877f2] text-boss-text active:scale-95' 
+                : 'bg-gray-600/50 text-white/20 cursor-not-allowed opacity-50'
+            }`}
+          >
             Sign Up
           </button>
         </form>

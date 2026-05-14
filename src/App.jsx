@@ -17,6 +17,8 @@ import PreSplash from './pages/PreSplash';
 import Splash from './pages/Splash';
 import Login from './pages/Login';
 import Feed from './pages/Feed';
+import Support from './pages/Support';
+import TermsAndCondition from './pages/TermsAndCondition';
 import SignUp from './pages/SignUp';
 import Verify from './pages/Verify';
 import Onboarding from './pages/Onboarding';
@@ -62,6 +64,7 @@ const LayoutWrapper = ({ children }) => {
     '/upload-reel', '/upload-story', '/story-viewer', '/settings', 
     '/settings/theme', '/settings/language', '/delete-account', 
     '/incoming-call', '/reels', '/editor', '/story-viewer', 
+    '/terms', '/support',
   ];
 
   const hideHeaderOnlyOn = [
@@ -138,7 +141,9 @@ function App() {
             <Route path="/home" element={<Navigate to="/feed" replace />} />
 
             <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
-           <Route path="/story-viewer/:userId" element={<ProtectedRoute><StoryViewer /></ProtectedRoute>} />
+            <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
+            <Route path="/terms" element={<TermsAndCondition />} />
+            <Route path="/story-viewer/:userId" element={<ProtectedRoute><StoryViewer /></ProtectedRoute>} />
             <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
             <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} /> 
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
