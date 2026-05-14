@@ -141,7 +141,7 @@ function App() {
             <Route path="/home" element={<Navigate to="/feed" replace />} />
 
             <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
-            <Route path="/support" element={<ProtectedRoute><Support /></ProtectedRoute>} />
+            <Route path="/support" element={<Support />} />
             <Route path="/terms" element={<TermsAndCondition />} />
             <Route path="/story-viewer/:userId" element={<ProtectedRoute><StoryViewer /></ProtectedRoute>} />
             <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />

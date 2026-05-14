@@ -37,10 +37,10 @@ export default function Support() {
 
     try {
       await emailjs.send(
-        'YOUR_SERVICE_ID', // Replace with your EmailJS Service ID
-        'YOUR_TEMPLATE_ID', // Replace with your EmailJS Template ID
+        'service_kw24hsj', // Your Service ID
+        'template_icyra5b', // Your Template ID
         finalData,
-        'YOUR_PUBLIC_KEY' // Replace with your EmailJS Public Key
+        'd-aowhtvThUi9eA0W'  // Your Public Key
       );
 
       Swal.fire({
@@ -53,15 +53,17 @@ export default function Support() {
         customClass: { popup: 'rounded-[30px] border border-white/10' }
       });
 
+      // Clear the form after success
       setFormData({
         user_name: '', user_id: '', user_email: '', user_phone: '',
         subject: '', complaint_details: '', suggestions: ''
       });
       
     } catch (error) {
+      console.error("EmailJS Error:", error);
       Swal.fire({
         title: 'Error!',
-        text: 'Something went wrong. Please try again later.',
+        text: 'Something went wrong. Please check your connection and try again.',
         icon: 'error',
         background: '#0f172a',
         color: '#fff'
