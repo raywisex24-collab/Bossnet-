@@ -37,6 +37,7 @@
     "react-draggable": "^4.5.0",
     "react-easy-crop": "^5.5.7",
     "react-i18next": "^17.0.4",
+    "react-phone-input-2": "^2.15.1",
     "react-player": "^3.4.0",
     "react-router-dom": "^7.14.0",
     "sharp": "^0.34.5",
