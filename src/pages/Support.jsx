@@ -100,12 +100,12 @@ export default function Support() {
       );
 
       Swal.fire({
-        title: 'Thank you for your feedback',
-        text: "We'll learn more ways to best serve you.",
+        title: 'your feedback has been received',
+        text: "We'll learn more ways to best serve your intrest.",
         icon: 'success',
         background: '#000',
         color: '#fff',
-        confirmButtonColor: '#3b82f6',
+        confirmButtonColor: '#3b82d7',
         customClass: { popup: 'rounded-2xl border border-white/10' }
       });
       
@@ -155,7 +155,7 @@ export default function Support() {
           <div className="relative">
             <label className={labelClass}>Reason for Complaint</label>
             <div onClick={() => setShowDropdown(!showDropdown)} className={`${inputClass} cursor-pointer flex justify-between items-center`}>
-              <span className={formData.subject ? "text-white" : "text-white/20"}>{formData.subject || "Choose your reason"}</span>
+              <span className={formData.subject ? "text-white" : "text-white/20"}>{formData.subject || "what's your reason"}</span>
               <ChevronDown size={16} className={`transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
             </div>
             <AnimatePresence>

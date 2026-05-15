@@ -290,8 +290,8 @@ export default function LegalCenter() {
         {/* Support Section */}
         <section className="mt-12 p-8 bg-blue-600 rounded-[30px] flex flex-col items-center text-center shadow-2xl">
           <Mail className="text-white mb-4" size={40} />
-          <h3 className="text-2xl font-black mb-2 text-white">Need Legal Clarification?</h3>
-          <p className="text-white/80 text-sm mb-6 max-w-xs font-medium">Contact our compliance team for any inquiries regarding these policies.</p>
+          <h3 className="text-2xl font-black mb-2 text-white">For questions or suggestions</h3>
+          <p className="text-white/80 text-sm mb-6 max-w-xs font-medium">Contact our compliance team.</p>
 <button 
   onClick={() => navigate('/support')}
   className="bg-white text-blue-600 px-8 py-3 rounded-full font-bold uppercase text-sm hover:scale-105 transition-transform"
