@@ -10,27 +10,41 @@ export default function Support() {
   const [loading, setLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   
+  const [selectedImage, setSelectedImage] = useState(null);
   const [formData, setFormData] = useState({
     user_name: '',
     user_id: '',
     user_email: '',
-    user_phone: '+', // Pre-filled + as requested
+    user_phone: '+', 
     subject: '',
     complaint_details: '',
     suggestions: ''
   });
 
-  // Automatically handles spacing: +000 000 000 0000
   const handlePhoneChange = (e) => {
     let value = e.target.value;
-    if (!value.startsWith('+')) value = '+' + value.replace(/\+/g, '');
-    const cleanValue = value.replace(/[^\d+]/g, '');
-    const formatted = cleanValue
-      .replace(/(.{4})/g, '$1 ')
-      .replace(/(.{8})/g, '$1 ')
-      .trim()
-      .slice(0, 25); // Max digits for global compatibility (usually 15 + spaces)
-    setFormData({ ...formData, user_phone: formatted });
+    
+    // Forces + to stay at the start and prevents double ++
+    if (!value.startsWith('+')) {
+      value = '+' + value.replace(/\+/g, '');
+    }
+    
+    // Strip everything except numbers, but keep the leading +
+    const numbersOnly = value.slice(1).replace(/\D/g, '');
+    
+    // Apply spacing every 3-4 digits for a professional look
+    const formatted = numbersOnly
+      .replace(/(\d{3})(\d{3})(\d{4,})/, '$1 $2 $3')
+      .trim();
+
+    setFormData({ ...formData, user_phone: '+' + formatted.slice(0, 25) });
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedImage(URL.createObjectURL(file));
+    }
   };
 
   const complaintOptions = [
@@ -119,58 +133,36 @@ export default function Support() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Full Name</label>
-              <input type="text" required className={inputClass} value={formData.user_name} onChange={(e) => setFormData({...formData, user_name: e.target.value})} />
+              <input type="text" required placeholder="Full names here" className={inputClass} value={formData.user_name} onChange={(e) => setFormData({...formData, user_name: e.target.value})} />
             </div>
             <div>
               <label className={labelClass}>Username</label>
-              <input type="text" required className={inputClass} value={formData.user_id} onChange={(e) => setFormData({...formData, user_id: e.target.value})} />
+              <input type="text" required placeholder="username" className={inputClass} value={formData.user_id} onChange={(e) => setFormData({...formData, user_id: e.target.value})} />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Email Address</label>
-              <input type="email" required className={inputClass} value={formData.user_email} onChange={(e) => setFormData({...formData, user_email: e.target.value})} />
+              <input type="email" required placeholder="example@bossnet.com" className={inputClass} value={formData.user_email} onChange={(e) => setFormData({...formData, user_email: e.target.value})} />
             </div>
-<div>
-  <label className={labelClass}>Phone Number</label>
-  <input 
-    type="tel" 
-    placeholder="+000" 
-    className={inputClass} 
-    value={formData.user_phone} 
-    onChange={handlePhoneChange} 
-  />
-</div>
+            <div>
+              <label className={labelClass}>Phone Number</label>
+              <input type="tel" placeholder="xxx xxx xxx xxx xxx" className={inputClass} value={formData.user_phone} onChange={handlePhoneChange} />
+            </div>
           </div>
 
-          {/* Reason for Complaint Dropdown */}
           <div className="relative">
             <label className={labelClass}>Reason for Complaint</label>
-            <div 
-              onClick={() => setShowDropdown(!showDropdown)}
-              className={`${inputClass} cursor-pointer flex justify-between items-center`}
-            >
-              <span className={formData.subject ? "text-white" : "text-white/20"}>
-                {formData.subject || "Choose your reason"}
-              </span>
+            <div onClick={() => setShowDropdown(!showDropdown)} className={`${inputClass} cursor-pointer flex justify-between items-center`}>
+              <span className={formData.subject ? "text-white" : "text-white/20"}>{formData.subject || "Choose your reason"}</span>
               <ChevronDown size={16} className={`transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
             </div>
-
             <AnimatePresence>
               {showDropdown && (
-                <motion.div 
-                  initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-                  className="absolute z-50 w-full mt-1 bg-[#111] border border-white/10 rounded-xl max-h-60 overflow-y-auto shadow-2xl shadow-blue-500/10"
-                >
+                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="absolute z-50 w-full mt-1 bg-[#111] border border-white/10 rounded-xl max-h-48 overflow-y-auto shadow-2xl">
                   {complaintOptions.map((option) => (
-                    <div 
-                      key={option} 
-                      onClick={() => handleSelectReason(option)}
-                      className="p-3 text-xs hover:bg-blue-600 transition-colors cursor-pointer border-b border-white/5 last:border-none"
-                    >
-                      {option}
-                    </div>
+                    <div key={option} onClick={() => handleSelectReason(option)} className="p-3 text-xs hover:bg-blue-600 cursor-pointer border-b border-white/5 last:border-none">{option}</div>
                   ))}
                 </motion.div>
               )}
@@ -179,19 +171,30 @@ export default function Support() {
 
           <div>
             <label className={labelClass}>Complaint Details</label>
-            <textarea 
-              required 
-              rows="2" 
-              placeholder="Describe the issue..."
-              className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none transition-all resize-none mt-1" 
-              value={formData.complaint_details} 
-              onChange={(e) => setFormData({...formData, complaint_details: e.target.value})} 
-            />
+            <textarea required rows="2" placeholder="describe your issue" className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none transition-all resize-none mt-1" value={formData.complaint_details} onChange={(e) => setFormData({...formData, complaint_details: e.target.value})} />
           </div>
 
           <div>
             <label className={labelClass}>Suggestions</label>
-            <input type="text" placeholder="How can we improve?" className={inputClass} value={formData.suggestions} onChange={(e) => setFormData({...formData, suggestions: e.target.value})} />
+            <input type="text" placeholder="how can we improve" className={inputClass} value={formData.suggestions} onChange={(e) => setFormData({...formData, suggestions: e.target.value})} />
+          </div>
+
+          {/* Attachment UI */}
+          <div className="mt-2">
+            <label className={labelClass}>Attachments (Optional)</label>
+            <div className="flex items-center gap-4">
+              <label className="flex-1 border-2 border-dashed border-white/10 rounded-xl p-3 flex items-center justify-center gap-2 cursor-pointer hover:border-blue-500/50 transition-all">
+                <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+                <span className="text-[10px] font-bold uppercase opacity-40 italic">
+                  {selectedImage ? "Image Selected" : "Attach Screenshot"}
+                </span>
+              </label>
+              {selectedImage && (
+                <div className="w-12 h-12 rounded-lg border border-white/20 overflow-hidden">
+                  <img src={selectedImage} alt="preview" className="w-full h-full object-cover" />
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -213,4 +216,3 @@ export default function Support() {
     </div>
   );
 }
-
