@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db } from '../firebase';
-import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc, collection, query, where, getDocs, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { ArrowLeft, X, Check, ChevronRight, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
@@ -109,13 +109,24 @@ export default function EditProfile() {
         if (result.success) {
           const downloadURL = result.data.url;
           
-          // Update Firestore
+          // 1. Update the user's main profile document
           await updateDoc(doc(db, "users", auth.currentUser.uid), { 
             profilePic: downloadURL 
           });
+
+          // 2. Look up all past posts made by this user
+          const postsQuery = query(collection(db, "posts"), where("userId", "==", auth.currentUser.uid));
+          const postsSnapshot = await getDocs(postsQuery);
+          
+          // 3. Update 'userImg' across all of them in a single batch execution
+          const batch = writeBatch(db);
+          postsSnapshot.forEach((postDoc) => {
+            batch.update(postDoc.ref, { userImg: downloadURL });
+          });
+          await batch.commit();
           
           setProfilePic(downloadURL);
-          Swal.fire("Updated", "Profile photo synced!", "success");
+          Swal.fire("Updated", "Profile photo synced everywhere!", "success");
         } else {
           throw new Error("imgBB response unsuccessful");
         }
@@ -185,8 +196,24 @@ export default function EditProfile() {
 
     try {
       setLoading(true);
+      // 1. Save the name, username, bio, and website changes to the user profile
       await updateDoc(userRef, updates);
-      Swal.fire("Success", "Profile updated!", "success");
+
+      // 2. If the username actually changed, cascade it to old posts
+      if (updates.username) {
+        const postsQuery = query(collection(db, "posts"), where("userId", "==", auth.currentUser.uid));
+        const postsSnapshot = await getDocs(postsQuery);
+        
+        const batch = writeBatch(db);
+        postsSnapshot.forEach((postDoc) => {
+          batch.update(postDoc.ref, { 
+            username: updates.username 
+          });
+        });
+        await batch.commit();
+      }
+
+      Swal.fire("Success", "Profile updated everywhere!", "success");
       navigate('/me');
     } catch (err) {
       Swal.fire("Error", "Could not save changes", "error");
