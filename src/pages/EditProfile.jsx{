@@ -31,15 +31,9 @@ export default function EditProfile() {
         const userRef = doc(db, "users", auth.currentUser.uid);
         const userDoc = await getDoc(userRef);
         
-        if (userDoc.exists()) {
-          const data = userDoc.data();
-          setUserData(data);
-          setFirstName(data.firstName || "");
-          setFullName(data.fullName || "");
-          setUsername(data.username || "");
           setBio(data.bio || "");
           setWebsite(data.website || "");
-          setProfilePic(data.profilePic || "");
+          setProfilePic(	.data.profilePic || "");
         } else {
           // Auto-create for missing IDs
           const newData = {
@@ -196,11 +190,6 @@ export default function EditProfile() {
       updates.lastFullNameUpdate = new Date();
     }
 
-    // Capture first name changes (uses the same time-lock rules as full name)
-    if (firstName !== userData.firstName && canEditFullName()) {
-      updates.firstName = firstName.trim();
-    }
-
     try {
       setLoading(true);
       // 1. Save the name, username, bio, and website changes to the user profile
@@ -256,29 +245,16 @@ export default function EditProfile() {
       </div>
 
       <div className="px-4 space-y-6">
-        {/* First Name Field */}
+        {/* Name Field */}
         <div className="border-b border-white/10 pb-2">
-          <label className="text-gray-500 text-[11px] uppercase font-bold tracking-wider">First Name</label>
-          <input 
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            disabled={!canEditFullName()}
-            placeholder="First name"
-            className={`w-full bg-transparent outline-none py-2 text-sm ${!canEditFullName() ? 'text-gray-500 opacity-50' : 'text-boss-text'}`}
-          />
-          {!canEditFullName() && <p className="text-[10px] text-red-500 mt-1 italic">wait 60 days</p>}
-        </div>
-
-        {/* Full Name Field */}
-        <div className="border-b border-white/10 pb-2">
-          <label className="text-gray-500 text-[11px] uppercase font-bold tracking-wider">Full Name</label>
+          <label className="text-gray-500 text-[11px] uppercase font-bold tracking-wider">Name</label>
           <input 
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             disabled={!canEditFullName()}
             className={`w-full bg-transparent outline-none py-2 text-sm ${!canEditFullName() ? 'text-gray-500 opacity-50' : 'text-boss-text'}`}
           />
-          {!canEditFullName() && <p className="text-[10px] text-red-500 mt-1 italic">wait 60 days</p>}
+          {!canEditFullName() && <p className="text-[10px] text-red-500 mt-1 italic">Locked for 60 days</p>}
         </div>
 
         {/* Username Field */}
@@ -295,7 +271,7 @@ export default function EditProfile() {
             {!isUsernameValid && <span className="text-red-500 text-xs font-bold ml-2 uppercase">Taken</span>}
             {isUsernameValid && username !== userData?.username && <Check size={16} className="text-green-500 ml-2" />}
           </div>
-          {!canEditUsername() && <p className="text-[10px] text-red-500 mt-1 italic">wait 14 days</p>}
+          {!canEditUsername() && <p className="text-[10px] text-red-500 mt-1 italic">Locked for 14 days</p>}
         </div>
 
         {/* Bio Field */}
@@ -332,3 +308,4 @@ export default function EditProfile() {
     </div>
   );
 }
+
