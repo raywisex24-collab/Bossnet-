@@ -24,22 +24,61 @@ export default function Feed() {
   const [commentText, setCommentText] = useState("");
   const [currentComments, setCurrentComments] = useState([]);
 
-  // 1. Fetch User and Posts
+  // 1. Fetch User and Posts + Back Button Lock
   useEffect(() => {
     const user = auth.currentUser;
     if (!user) { navigate('/login'); return; }
+
+    // --- BACK BUTTON LOCK MECHANISM ---
+    // Push a fresh state to history stack immediately
+    window.history.pushState(null, "", window.location.href);
+
+    const handleBackButton = (e) => {
+      e.preventDefault();
+      // Keep re-pushing the state so they stay locked on this route
+      window.history.pushState(null, "", window.location.href);
+      
+      // Use SweetAlert to verify if they want to exit the application
+      Swal.fire({
+        title: 'Exit App?',
+        text: "Are you sure you want to close Bossnet?",
+        icon: 'warning',
+        showCancelButton: true,
+        background: '#1c1c1e',
+        color: '#fff',
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Exit',
+        customClass: {
+          popup: 'rounded-[25px] border border-white/10'
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          // Closes the browser tab/PWA app instance safely
+          window.close(); 
+          // Fallback for standalone web app shells
+          navigator.app?.exitApp(); 
+        }
+      });
+    };
+
+    window.addEventListener('popstate', handleBackButton);
+    // ----------------------------------
 
     const unsubUser = onSnapshot(doc(db, "users", user.uid), (doc) => {
       if (doc.exists()) setUserData(doc.data());
     });
 
-    // Changed to 'asc' as requested for "going down" logic
     const qPosts = query(collection(db, "posts"), orderBy("createdAt", "asc"));
     const unsubPosts = onSnapshot(qPosts, (snapshot) => {
       setPosts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
 
-    return () => { unsubUser(); unsubPosts(); };
+    return () => { 
+      unsubUser(); 
+      unsubPosts(); 
+      window.removeEventListener('popstate', handleBackButton); // Clean up the listener on unmount
+    };
   }, [navigate]);
 
   // 1.5. Listen for "Refresh" tap from Navbar

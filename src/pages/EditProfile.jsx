@@ -196,33 +196,38 @@ export default function EditProfile() {
       updates.lastFullNameUpdate = new Date();
     }
 
-    // Capture first name changes (uses the same time-lock rules as full name)
     if (firstName !== userData.firstName && canEditFullName()) {
       updates.firstName = firstName.trim();
     }
 
     try {
       setLoading(true);
-      // 1. Save the name, username, bio, and website changes to the user profile
+      // 1. Save all profile updates to the user profile document
       await updateDoc(userRef, updates);
 
-      // 2. If the username actually changed, cascade it to old posts
-      if (updates.username) {
+      // 2. FORCE SYNC: Grab whatever username is active right now
+      const currentActiveUsername = username || userData?.username;
+
+      if (currentActiveUsername) {
+        // Find ALL posts belonging to this specific user ID
         const postsQuery = query(collection(db, "posts"), where("userId", "==", auth.currentUser.uid));
         const postsSnapshot = await getDocs(postsQuery);
         
         const batch = writeBatch(db);
         postsSnapshot.forEach((postDoc) => {
+          // Explicitly overwrite the old 'username' field with the fresh one
           batch.update(postDoc.ref, { 
-            username: updates.username 
+            username: currentActiveUsername.toLowerCase().trim() 
           });
         });
+        // Run the batch execution update
         await batch.commit();
       }
 
       Swal.fire("Success", "Profile updated everywhere!", "success");
       navigate('/me');
     } catch (err) {
+      console.error(err);
       Swal.fire("Error", "Could not save changes", "error");
     } finally {
       setLoading(false);
