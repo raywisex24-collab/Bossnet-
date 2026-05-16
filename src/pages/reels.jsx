@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { db, auth } from '../firebase'; 
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, arrayUnion, arrayRemove, increment, addDoc, serverTimestamp, getDocs, where, limit, getDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, arrayUnion, arrayRemove, increment, addDoc, serverTimestamp, getDocs, where, limit, getDoc, deleteDoc, setDoc } from 'firebase/firestore'; // 👈 Added setDoc
 import { Heart, MessageCircle, Share2, Music, MoreVertical, Play, ArrowLeft, Send, X, Download, Repeat2, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import VerifiedBadge from './VerifiedBadge'; 
@@ -23,6 +23,51 @@ const ReelItem = ({ post }) => {
   const navigate = useNavigate();
   const user = auth.currentUser;
   const shareLongPressTimer = useRef(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+
+  // Real-time listener for following status
+  useEffect(() => {
+    if (!user || !post.userId) return;
+    
+    const followRef = doc(db, "users", user.uid, "following", post.userId);
+    const unsub = onSnapshot(followRef, (docSnap) => {
+      setIsFollowing(docSnap.exists());
+    });
+    
+    return () => unsub();
+  }, [post.userId, user]);
+
+  const handleFollowToggle = async () => {
+    if (!user || !post.userId) return;
+
+    const myFollowingRef = doc(db, "users", user.uid, "following", post.userId);
+    const targetFollowersRef = doc(db, "users", post.userId, "followers", user.uid);
+
+    if (isFollowing) {
+      const confirmUnfollow = window.confirm("Are you sure you want to unfollow this user, boss?");
+      if (!confirmUnfollow) return;
+
+      try {
+        await deleteDoc(myFollowingRef);
+        await deleteDoc(targetFollowersRef);
+        
+        await updateDoc(doc(db, "users", user.uid), { followingCount: increment(-1) }).catch(()=>{});
+        await updateDoc(doc(db, "users", post.userId), { followersCount: increment(-1) }).catch(()=>{});
+      } catch (err) {
+        console.error("Unfollow Error:", err);
+      }
+    } else {
+      try {
+        await setDoc(myFollowingRef, { followedAt: serverTimestamp() });
+        await setDoc(targetFollowersRef, { followerId: user.uid, timestamp: serverTimestamp() });
+        
+        await updateDoc(doc(db, "users", user.uid), { followingCount: increment(1) }).catch(()=>{});
+        await updateDoc(doc(db, "users", post.userId), { followersCount: increment(1) }).catch(()=>{});
+      } catch (err) {
+        console.error("Follow Error:", err);
+      }
+    }
+  };
 
   // Original Intersection Observer
   useEffect(() => {
@@ -315,16 +360,12 @@ const ReelItem = ({ post }) => {
 
       {/* 4. RIGHT SIDE ACTIONS */}
       <div className="absolute right-3 bottom-24 flex flex-col gap-5 items-center z-30">
-        <div className="relative mb-2">
+        <div className="mb-2">
           <StoryAvatar 
             userId={post.userId} 
             profilePic={post.userId === user?.uid ? (auth.currentUser?.photoURL || post.userProfilePic) : post.userProfilePic} 
             size="46px" 
           />
-          {/* Follow/Plus context badging element */}
-          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-[#1877F2] rounded-full w-4 h-4 flex items-center justify-center border-2 border-black pointer-events-none">
-            <span className="text-boss-text text-[10px] font-bold mt-[-2px]">+</span>
-          </div>
         </div>
 
         <div className="flex flex-col items-center" onClick={handleLikeClick}>
@@ -376,8 +417,19 @@ const ReelItem = ({ post }) => {
               isVerified={post.userId === user?.uid ? (auth.currentUser && post.isVerified) : post.isVerified} 
             />
           </div>
-          <span className="w-1 h-1 bg-white rounded-full"></span>
-          <button className="text-[11px] font-bold text-[#1877F2]">Follow</button>
+          {user && user.uid !== post.userId && (
+            <>
+              <span className="w-1 h-1 bg-white rounded-full"></span>
+              <button 
+                onClick={handleFollowToggle}
+                className={`text-[11px] font-extrabold uppercase tracking-wider transition-colors duration-200 ${
+                  isFollowing ? 'text-zinc-400 hover:text-red-400' : 'text-[#1877F2]'
+                }`}
+              >
+                {isFollowing ? 'Following' : 'Follow'}
+              </button>
+            </>
+          )}
         </div>
         <p className="text-boss-text text-[13px] leading-snug line-clamp-2 mb-4 font-medium">{post.caption}</p>
         <div className="flex items-center gap-2 bg-white/10 backdrop-blur-lg border border-white/10 rounded-full px-3 py-2 w-fit">
