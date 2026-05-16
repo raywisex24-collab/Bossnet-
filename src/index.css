@@ -218,3 +218,38 @@ p, h1, h2, h3, h4, h5, h6, span, div, input, textarea {
   border-color: #ef4444 !important; 
 }
 
+@keyframes flip-horizontal {
+  0% { transform: rotateY(0deg); }
+  50% { transform: rotateY(180deg); }
+  100% { transform: rotateY(0deg); }
+}
+
+.animate-flip {
+  animation: flip-horizontal 4s ease-in-out infinite;
+  perspective: 1000px;
+}
+
+/* Apply native-app text protection globally */
+body {
+  margin: 0;
+  padding: 0;
+  -webkit-touch-callout: none; /* Disables long-press callouts on iOS */
+  -webkit-user-select: none;   /* Disables selection in Safari */
+  user-select: none;           /* Disables text selection across browsers */
+  -webkit-tap-highlight-color: transparent; /* Removes the blue flash click box */
+}
+
+/* Specifically lock down images from drag/drop and context search */
+img {
+  -webkit-user-drag: none;
+  user-drag: none;
+  pointer-events: none; /* Makes the image un-clickable/un-selectable */
+}
+
+/* CRITICAL: Keep inputs and textareas working normally */
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+  pointer-events: auto;
+}
+

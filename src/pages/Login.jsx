@@ -95,20 +95,29 @@ export default function Login() {
   };
 
   return (
-    <div 
-      className="min-h-screen flex flex-col items-center justify-center p-4 font-sans"
+   <div 
+      className="h-screen w-full flex flex-col items-center justify-center p-6 font-sans overflow-hidden fixed inset-0"
       style={{
         background: "linear-gradient(135deg, #ff9d00 0%, #1877f2 35%, #8e44ad 70%, #d1f2eb 100%)"
       }}
     >
-      <div className="text-center mb-8">
-        <h1 className="text-5xl font-extrabold bg-gradient-to-r from-[#ff9d00] to-[#8e44ad] bg-clip-text text-transparent drop-shadow-md">
-          Bossnet
-        </h1>
-        <p className="text-boss-text text-xl mt-2 font-semibold">
-          Connect, Innovate, and Lead.
-        </p>
-      </div>
+<div className="text-center mb-6 flex flex-col items-center max-h-[28vh] justify-center">
+  {/* Modern Circular Pod for the Logo */}
+  <div className="w-30 h-30 md:w-5 md:h-24 bg-white/5 backdrop-blur-md rounded-full flex items-center justify-center p-2 border border-white/10 shadow-xl mb-3">
+    <img 
+      src="https://i.postimg.cc/rynvWCgF/file-00000000f6e471fd85be551554c14ba5.png" 
+      alt="Bossnet Logo" 
+      className="w-full h-full animate-flip object-contain"
+    />
+  </div>
+  
+  <h1 className="text-4xl font-black bg-gradient-to-r from-[#ff9d00] to-[#8e44ad] bg-clip-text text-transparent tracking-tight drop-shadow-lg leading-none">
+    Bossnet
+  </h1>
+  <p className="text-white/60 text-sm mt-1.5 font-medium tracking-wide">
+    Connect, Innovate, and Lead.
+  </p>
+</div>
 
       <div className="relative bg-[#0f172a]/90 backdrop-blur-2xl p-8 rounded-[40px] shadow-2xl max-w-[400px] w-full border border-white/10 overflow-hidden">
         <div className="absolute inset-0 opacity-[0.05] pointer-events-none" 
@@ -120,8 +129,8 @@ export default function Login() {
             <input
               type="text"
               value={emailOrUser}
-              onChange={(e) => setEmailOrUser(e.target.value)}
-              placeholder="Username or email address"
+              onChange={(e) => setEmailOrUser(e.target.value.toLowerCase())}
+              placeholder="username or email address"
               required
               className="w-full py-4 px-6 bg-[#1a1a20]/90 border border-white/10 rounded-full text-boss-text placeholder-white/70 focus:border-purple-500 outline-none transition-all"
             />
