@@ -290,13 +290,13 @@ const ReelItem = ({ post }) => {
           {showOptionsMenu && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowOptionsMenu(false)} />
-              <div className="absolute right-0 mt-2 w-64 bg-[#1c1c1e] border border-white/10 rounded-2xl shadow-2xl overflow-hidden py-1 z-50 animate-in fade-in zoom-in-95 duration-100">
+              <div className="absolute right-4 top-12 z-[200] w-64 bg-[#1c1c1e] border border-white/10 rounded-2xl shadow-2xl overflow-hidden py-1 animate-in fade-in zoom-in-95 duration-100">
                 {user && user.uid !== post.userId ? (
                   <button 
-                    onClick={() => {
-                      submitGlobalReport('reel', post);
+                    onClick={() => { 
+                      submitGlobalReport('reel', post); 
                       setShowOptionsMenu(false); // 👈 Automatically closes the dropdown options frame instantly
-                    }}
+                    }} 
                     className="w-full px-4 py-3 flex items-center gap-3 text-red-500 hover:bg-white/5 text-xs font-bold transition-colors"
                   >
                     <AlertTriangle size={16} /> Report post
@@ -361,11 +361,10 @@ const ReelItem = ({ post }) => {
         <div className="flex items-center gap-2 mb-2">
           <div className="flex items-center gap-1">
             <h1 className="text-xl font-bold lowercase tracking-tight">
-              {post.userId === user?.uid ? (post.username || "me") : (post.username || post.authorName || "...")}
+              {post.username || post.authorName || "..."}
             </h1>
-            {/* If it's your post, look up live authentication parameters locally if available */}
             <VerifiedBadge 
-              isVerified={post.isVerified === true} 
+              isVerified={post.userId === user?.uid ? (auth.currentUser && post.isVerified) : post.isVerified} 
             />
           </div>
           <span className="w-1 h-1 bg-white rounded-full"></span>
@@ -402,7 +401,7 @@ const ReelItem = ({ post }) => {
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-1.5">
-                        <p className="text-boss-text text-[13px] font-bold">{com.username}</p>
+                        <p className="text-boss-text text-[13px] font-bold">@{com.username}</p>
                         <VerifiedBadge isVerified={com.isVerified} />
                         <span className="text-[10px] text-zinc-500">• {com.likes || 0} likes</span>
                       </div>
