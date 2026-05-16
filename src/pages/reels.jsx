@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { db, auth } from '../firebase'; 
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, arrayUnion, arrayRemove, increment, addDoc, serverTimestamp, getDocs, where, limit, getDoc, deleteDoc } from 'firebase/firestore';
-import { Heart, MessageCircle, Share2, Music, MoreVertical, Play, ArrowLeft, Send, X, Download, Repeat2 } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Music, MoreVertical, Play, ArrowLeft, Send, X, Download, Repeat2, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import VerifiedBadge from './VerifiedBadge'; // Since they are in the same folder
+import VerifiedBadge from './VerifiedBadge'; 
+import { submitGlobalReport } from '../reportSystem'; // 👈 Connected correctly as a neighbor
 
 const ReelItem = ({ post }) => {
   const videoRefs = useRef([]);
@@ -16,11 +17,10 @@ const ReelItem = ({ post }) => {
   const [friends, setFriends] = useState([]);
   const [showHeartAnim, setShowHeartAnim] = useState(false);
   const [heartPos, setHeartPos] = useState({ x: 0, y: 0 });
-  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const [showOptionsMenu, setShowOptionsMenu] = useState(false); // 👈 Replaces download state
   
   const navigate = useNavigate();
   const user = auth.currentUser;
-  const longPressTimer = useRef(null);
   const shareLongPressTimer = useRef(null);
 
   // Original Intersection Observer
@@ -126,17 +126,6 @@ const ReelItem = ({ post }) => {
     });
   };
 
-  // 1.1s Long Press Logic for Main Screen (Download)
-  const handleTouchStart = () => {
-    longPressTimer.current = setTimeout(() => {
-      setShowDownloadMenu(true);
-    }, 1100);
-  };
-
-  const handleTouchEnd = () => {
-    clearTimeout(longPressTimer.current);
-  };
-
   // 1.1s Long Press Logic for Share Button
   const handleShareLongPressStart = (e) => {
     e.stopPropagation();
@@ -239,13 +228,7 @@ const ReelItem = ({ post }) => {
   };
 
   return (
-    <div 
-      className="h-screen w-full snap-start relative bg-boss-bg flex items-center justify-center reel-container"
-      onMouseDown={handleTouchStart}
-      onMouseUp={handleTouchEnd}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-    >
+    <div className="h-screen w-full snap-start relative bg-boss-bg flex items-center justify-center reel-container">
       {/* 1. HORIZONTAL MEDIA CAROUSEL */}
       <div onScroll={handleHorizontalScroll} className="w-full h-full overflow-x-auto snap-x snap-mandatory flex no-scrollbar scroll-smooth">
         {post.media && post.media.map((item, index) => (
@@ -290,13 +273,42 @@ const ReelItem = ({ post }) => {
         </div>
       )}
 
-      {/* 3. HEADER OVERLAY */}
+      {/* 3. HEADER OVERLAY WITH DROPDOWN */}
       <div className="absolute top-0 left-0 right-0 p-5 flex justify-between items-center bg-gradient-to-b from-black/70 to-transparent z-[60]">
         <div className="flex items-center gap-4">
           <ArrowLeft size={28} className="text-boss-text cursor-pointer active:scale-90" onClick={() => navigate('/feed')} />
           <h2 className="text-boss-text text-xl font-black italic tracking-tighter">REELS</h2>
         </div>
-        <MoreVertical size={24} className="text-boss-text" />
+        
+        <div className="relative">
+          <MoreVertical 
+            size={24} 
+            className="text-boss-text cursor-pointer active:scale-75 transition-transform" 
+            onClick={() => setShowOptionsMenu(!showOptionsMenu)} 
+          />
+          
+          {showOptionsMenu && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setShowOptionsMenu(false)} />
+              <div className="absolute right-0 mt-2 w-48 bg-[#1a1a20] border border-white/10 rounded-2xl p-1.5 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
+                {user && user.uid !== post.userId ? (
+                  <button 
+                    onClick={() => {
+                      setShowOptionsMenu(false);
+                      submitGlobalReport('reel', post);
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 text-xs font-bold text-red-400 hover:bg-white/5 rounded-xl transition-all"
+                  >
+                    <AlertTriangle size={16} />
+                    Report Content
+                  </button>
+                ) : (
+                  <p className="text-[11px] font-medium text-zinc-500 text-center py-2">Your Reel Option</p>
+                )}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* 4. RIGHT SIDE ACTIONS */}
@@ -341,8 +353,11 @@ const ReelItem = ({ post }) => {
         )}
         <div className="flex items-center gap-2 mb-2">
           <div className="flex items-center gap-1">
-            <h1 className="text-xl font-bold lowercase tracking-tight">{post.username || "..."}</h1>
-            <VerifiedBadge isVerified={post.isVerified} />
+            <h1 className="text-xl font-bold lowercase tracking-tight">
+              {post.username || post.authorName || "..."}
+            </h1>
+            {/* Direct dynamic verification evaluation */}
+            <VerifiedBadge isVerified={post.isVerified === true} />
           </div>
           <span className="w-1 h-1 bg-white rounded-full"></span>
           <button className="text-[11px] font-bold text-[#1877F2]">Follow</button>
@@ -465,23 +480,6 @@ const ReelItem = ({ post }) => {
         </div>
       )}
 
-      {/* 8. DOWNLOAD MENU */}
-      {showDownloadMenu && (
-        <div className="absolute inset-0 z-[110] bg-boss-bg/60 flex items-center justify-center p-10" onClick={() => setShowDownloadMenu(false)}>
-          <div className="bg-[#1c1c1e] w-full max-w-[280px] rounded-3xl overflow-hidden animate-in zoom-in-95" onClick={e => e.stopPropagation()}>
-            <div className="p-6 text-center border-b border-zinc-800">
-              <p className="text-boss-text font-bold">Reel Options</p>
-            </div>
-            <button className="w-full p-4 flex items-center justify-center gap-3 text-boss-text font-semibold active:bg-zinc-800" onClick={() => {
-              window.open(post.media[activeIndex].url, '_blank');
-              setShowDownloadMenu(false);
-            }}>
-              <Download size={20} />
-              <span>Save Video</span>
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

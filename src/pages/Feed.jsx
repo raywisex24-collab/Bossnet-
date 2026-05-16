@@ -5,6 +5,7 @@ import { doc, collection, onSnapshot, query, orderBy, addDoc, serverTimestamp, u
 import { Heart, MessageSquare, MoreHorizontal, Globe, Lock, Send, X, Repeat2, Share2, Bookmark, Trash2, Flag, UserX, BellOff, EyeOff, Link, Edit, MessageCircleOff, Eye, UserPlus } from 'lucide-react';
 import StoryAvatar from '../components/StoryAvatar';
 import VerifiedBadge from './VerifiedBadge'; 
+import { submitGlobalReport } from '../reportSystem'; // 👈 Import your new global system
 
 export default function Feed() {
   const navigate = useNavigate();
@@ -15,8 +16,6 @@ export default function Feed() {
   
   // New States for Menu and Reporting
   const [activeMenu, setActiveMenu] = useState(null);
-  const [reportingPost, setReportingPost] = useState(null);
-  const [reportMessage, setReportMessage] = useState("");
   const hasScrolledRef = useRef(false);
 
   // Comment States
@@ -334,7 +333,7 @@ export default function Feed() {
           if (post.hidden && !isOwner) return null;
           
           return (
-<div key={post.id} className="post-container w-full mb-6 bg-transparent border-y border-white/5 md:border md:rounded-3xl overflow-hidden shadow-2xl relative">
+           <div key={post.id} className="post-container w-full mb-6 bg-transparent border-y border-white/5 md:border md:rounded-3xl overflow-hidden shadow-2xl relative">
               
               {post.isRepost && (
                 <div className="px-4 pt-2 flex items-center gap-2 text-[10px] text-zinc-500 font-bold uppercase tracking-widest border-b border-white/5 pb-2">
@@ -391,7 +390,13 @@ export default function Feed() {
                       </>
                     ) : (
                       <>
-                        <button onClick={() => handleReport(post)} className="w-full px-4 py-3 flex items-center gap-3 text-red-500 hover:bg-white/5 text-xs font-bold">
+                        <button 
+                          onClick={() => { 
+                            submitGlobalReport('post', post); 
+                            setActiveMenu(null); // 👈 Automatically closes the dropdown options frame
+                          }} 
+                          className="w-full px-4 py-3 flex items-center gap-3 text-red-500 hover:bg-white/5 text-xs font-bold"
+                        >
                           <Flag size={16} /> Report post
                         </button>
                         <button onClick={() => { /* Logic for actual gallery save usually requires a library or server-side proxy */ alert("Saving to gallery...") }} className="w-full px-4 py-3 flex items-center gap-3 text-boss-text hover:bg-white/5 text-xs font-bold">
@@ -521,27 +526,6 @@ export default function Feed() {
           );
         })}
       </main>
-
-      {/* REPORT MODAL */}
-      {reportingPost && (
-        <div className="fixed inset-0 z-[500] bg-boss-bg/90 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-[#1c1c1e] w-full max-w-sm rounded-[30px] p-6 border border-white/10 shadow-2xl">
-            <h3 className="text-boss-text font-bold text-lg mb-2">Report Content</h3>
-            <p className="text-zinc-400 text-xs mb-4">Explain why you are reporting @{reportingPost.username}'s post.</p>
-            <textarea 
-              value={reportMessage} 
-              onChange={(e) => setReportMessage(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-boss-text text-sm h-32 focus:outline-none focus:border-blue-500 mb-4" 
-              placeholder="Your message..."
-            />
-            <div className="flex gap-3">
-              <button onClick={() => setReportingPost(null)} className="flex-1 py-3 bg-white/5 rounded-xl font-bold text-sm">Cancel</button>
-              <button onClick={submitReport} className="flex-1 py-3 bg-red-600 rounded-xl font-bold text-sm">Send</button>
-            </div>
-          </div>
-        </div>
-      )}
-
 
       {/* COMMENT PANEL */}
       {activePostForComments && (
