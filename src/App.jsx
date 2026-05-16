@@ -41,6 +41,7 @@ import EditPost from './pages/EditPost';
 import EditProfile from './pages/EditProfile'; 
 import EmailUpdate from './pages/EmailUpdate'; 
 import SearchPage from './pages/SearchPage';
+import AdminPanel from './pages/AdminPanel'; // 👈 ADD THIS LINE
 import Notifications from './pages/Notifications'; 
 import ProtectedRoute from "./ProtectedRoute";
 import EditorPage from './pages/EditorPage'; 
@@ -64,7 +65,7 @@ const LayoutWrapper = ({ children }) => {
     '/upload-reel', '/upload-story', '/story-viewer', '/settings', 
     '/settings/theme', '/settings/language', '/delete-account', 
     '/incoming-call', '/reels', '/editor', '/story-viewer', 
-    '/terms', '/support',
+    '/terms', '/support', '/admin', // 👈 ADD IT HERE
   ];
 
   const hideHeaderOnlyOn = [
@@ -157,6 +158,7 @@ function App() {
             <Route path="/edit-post/:postId" element={<ProtectedRoute><EditPost /></ProtectedRoute>} />
             <Route path="/list/:userId/:type" element={<ProtectedRoute><FollowList /></ProtectedRoute>} />
             <Route path="/me" element={<ProtectedRoute><PersonalProfile /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} /> {/* 👈 ADD THIS LINE */}
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/settings/theme" element={<ProtectedRoute><ThemeSettings /></ProtectedRoute>} />
             <Route path="/settings/language" element={<ProtectedRoute><LanguageSettings /></ProtectedRoute>} />

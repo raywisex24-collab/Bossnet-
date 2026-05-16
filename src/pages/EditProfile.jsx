@@ -213,11 +213,15 @@ export default function EditProfile() {
         const postsQuery = query(collection(db, "posts"), where("userId", "==", auth.currentUser.uid));
         const postsSnapshot = await getDocs(postsQuery);
         
+        // Determine the current live verification status to cascade
+        const currentVerificationStatus = updates.hasOwnProperty('isVerified') ? updates.isVerified : (userData?.isVerified || false);
+        
         const batch = writeBatch(db);
         postsSnapshot.forEach((postDoc) => {
-          // Explicitly overwrite the old 'username' field with the fresh one
+          // Explicitly overwrite both fields to keep old records flawless
           batch.update(postDoc.ref, { 
-            username: currentActiveUsername.toLowerCase().trim() 
+            username: currentActiveUsername.toLowerCase().trim(),
+            isVerified: currentVerificationStatus
           });
         });
         // Run the batch execution update

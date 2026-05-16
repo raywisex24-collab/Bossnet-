@@ -6,7 +6,8 @@ import {
 } from 'firebase/firestore'; 
 import { 
   ArrowLeft, Grid, Play, Plus, Menu, Settings as SettingsIcon,
-  Heart, MessageCircle, Share2, Layers, Trash2, LogOut, X, PlusCircle
+  Heart, MessageCircle, Share2, Layers, Trash2, LogOut, X, PlusCircle,
+  Shield // 👈 Added here
 } from 'lucide-react';
 // Import the badge component you just created
 import VerifiedBadge from './VerifiedBadge';
@@ -284,6 +285,18 @@ export default function PersonalProfile() {
             onClick={e => e.stopPropagation()}
           >
             <div className="w-10 h-1 bg-white/10 rounded-full mx-auto mb-6"></div>
+
+            {/* SECRET DOORWAY FOR ADMIN ACCOUNTS ONLY */}
+            {profileData?.isAdmin === true && (
+              <div 
+                onClick={() => { navigate('/admin'); setShowSheet(false); }}
+                className="flex items-center gap-4 p-4 mb-2 bg-blue-600/10 border border-blue-500/20 text-blue-400 hover:bg-blue-600/20 rounded-xl cursor-pointer transition-colors"
+              >
+                <Shield size={22} className="text-blue-400" />
+                <span className="font-bold text-lg">Admin Console</span>
+              </div>
+            )}
+
             <div 
               onClick={() => { navigate('/settings'); setShowSheet(false); }}
               className="flex items-center gap-4 p-4 active:bg-white/5 rounded-xl cursor-pointer"

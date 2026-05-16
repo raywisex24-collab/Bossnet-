@@ -352,10 +352,12 @@ export default function Feed() {
     size="40px" 
   />
   <div>
-                    <div className="flex items-center gap-1">
-                      <h4 className="font-bold text-sm text-boss-text">{post.username}</h4>
-                      <VerifiedBadge isVerified={post.isVerified} />
-                    </div>
+<div className="flex items-center gap-1">
+  <h4 className="font-bold text-sm text-boss-text">{post.username}</h4>
+  <VerifiedBadge 
+    isVerified={post.userId === auth.currentUser?.uid ? (userData?.isVerified || false) : (post.isVerified || false)} 
+  />
+</div>
                     <div className="flex items-center gap-1 text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
                       <span>{formatTime(post.createdAt)}</span> · {post.privacy === 'private' ? <Lock size={10}/> : <Globe size={10}/>}
                     </div>
