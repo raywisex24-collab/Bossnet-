@@ -4,6 +4,7 @@ import { db, auth } from '../firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
 export default function StoryAvatar({ userId, profilePic, size = "40px" }) {
+  const [hasStories, setHasStories] = useState(false);
   const [hasUnseenStory, setHasUnseenStory] = useState(false);
   const navigate = useNavigate();
   
@@ -14,7 +15,6 @@ export default function StoryAvatar({ userId, profilePic, size = "40px" }) {
     if (!userId || !currentUser) return;
 
     const now = Date.now();
-    // 1. Listen for active stories from this user
     const qStories = query(
       collection(db, "stories"),
       where("userId", "==", userId),
@@ -23,60 +23,66 @@ export default function StoryAvatar({ userId, profilePic, size = "40px" }) {
 
     const unsubscribe = onSnapshot(qStories, (storySnap) => {
       if (storySnap.empty) {
+        setHasStories(false);
         setHasUnseenStory(false);
         return;
       }
 
+      setHasStories(true);
       const storyIds = storySnap.docs.map(d => d.id);
 
-      // 2. Check if current user has viewed ALL these stories
       const qViews = query(
         collection(db, "storyViews"),
         where("viewerId", "==", currentUser.uid),
         where("storyId", "in", storyIds)
       );
 
-      // We use another onSnapshot to keep it real-time
-      onSnapshot(qViews, (viewSnap) => {
-        // If the number of views is less than the number of active stories, show the ring
+      const unsubViews = onSnapshot(qViews, (viewSnap) => {
         setHasUnseenStory(viewSnap.size < storyIds.length);
       });
+
+      return () => unsubViews();
     });
 
     return () => unsubscribe();
   }, [userId]);
 
   const handleClick = () => {
-    // Navigate to viewer if there are stories (seen or unseen), else go to profile
-    if (hasUnseenStory) {
+    if (hasStories) {
       navigate(`/story-viewer/${userId}`);
     } else {
       navigate(`/profile/${userId}`);
     }
   };
 
+  // Determine border styles dynamically based on the active state rules
+  const ringBackground = hasUnseenStory 
+    ? 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)' 
+    : hasStories 
+      ? '#3a3b3c' // Stale/viewed active story shows a muted grey border
+      : 'transparent'; // No active story means clean design seamless flow
+
   return (
     <div 
       onClick={handleClick}
-      className="relative flex items-center justify-center cursor-pointer transition-all active:scale-90"
+      className="relative flex items-center justify-center cursor-pointer transition-all active:scale-90 select-none shrink-0"
       style={{
         width: size,
         height: size,
-        padding: hasUnseenStory ? '2.5px' : '0px',
-        background: hasUnseenStory 
-          ? 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)' 
-          : 'transparent',
+        padding: (hasUnseenStory || hasStories) ? '2.5px' : '0px',
+        background: ringBackground,
         borderRadius: '50%',
       }}
     >
-      <div className="w-full h-full rounded-full bg-[#0b0e11] p-[1.5px]">
+      <div className="w-full h-full rounded-full bg-[#0b0e11] p-[1.5px] flex items-center justify-center overflow-hidden">
         <img 
-src={(profilePic && profilePic !== "") ? profilePic : defaultPic}
+          src={(profilePic && profilePic !== "") ? profilePic : defaultPic}
           className="w-full h-full rounded-full object-cover bg-zinc-800"
           alt="avatar"
-          onError={(e) => { e.target.src = defaultPic; }}
+          onError={(e) => { e.currentTarget.src = defaultPic; }}
         />
       </div>
     </div>
   );
 }
+

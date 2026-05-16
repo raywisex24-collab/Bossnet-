@@ -4,7 +4,8 @@ import { collection, query, orderBy, onSnapshot, doc, updateDoc, arrayUnion, arr
 import { Heart, MessageCircle, Share2, Music, MoreVertical, Play, ArrowLeft, Send, X, Download, Repeat2, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import VerifiedBadge from './VerifiedBadge'; 
-import { submitGlobalReport } from '../reportSystem'; // 👈 Connected correctly as a neighbor
+import StoryAvatar from '../components/StoryAvatar'; // 👈 Added to manage profile frames
+import { submitGlobalReport } from '../reportSystem';
 
 const ReelItem = ({ post }) => {
   const videoRefs = useRef([]);
@@ -314,15 +315,16 @@ const ReelItem = ({ post }) => {
 
       {/* 4. RIGHT SIDE ACTIONS */}
       <div className="absolute right-3 bottom-24 flex flex-col gap-5 items-center z-30">
-        <div className="relative mb-2" onClick={() => navigate(`/profile/${post.userId}`)}>
-          <div className="w-11 h-11 rounded-full border-2 border-white overflow-hidden shadow-lg">
-            <img 
-              src={post.userId === user?.uid ? (auth.currentUser?.photoURL || post.userProfilePic) : post.userProfilePic} 
-              className="w-full h-full object-cover" 
-              alt="pfp" 
-            />
+        <div className="relative mb-2">
+          <StoryAvatar 
+            userId={post.userId} 
+            profilePic={post.userId === user?.uid ? (auth.currentUser?.photoURL || post.userProfilePic) : post.userProfilePic} 
+            size="46px" 
+          />
+          {/* Follow/Plus context badging element */}
+          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-[#1877F2] rounded-full w-4 h-4 flex items-center justify-center border-2 border-black pointer-events-none">
+            <span className="text-boss-text text-[10px] font-bold mt-[-2px]">+</span>
           </div>
-          <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-[#1877F2] rounded-full w-4 h-4 flex items-center justify-center border-2 border-black"><span className="text-boss-text text-[10px] font-bold">+</span></div>
         </div>
 
         <div className="flex flex-col items-center" onClick={handleLikeClick}>
@@ -346,8 +348,15 @@ const ReelItem = ({ post }) => {
           <Share2 size={30} color="white" className="drop-shadow-lg" />
         </div>
 
-        <div className="w-9 h-9 rounded-full border-2 border-zinc-500 overflow-hidden animate-spin-slow mt-2 p-1 bg-boss-bg/50 backdrop-blur-md">
-           <img src={post.userProfilePic} className="w-full h-full rounded-full object-cover" alt="" />
+        <div 
+          className="w-9 h-9 rounded-full border-2 border-zinc-500 overflow-hidden animate-spin-slow mt-2 p-1 bg-boss-bg/50 backdrop-blur-md cursor-pointer"
+          onClick={() => navigate(`/profile/${post.userId}`)}
+        >
+           <img 
+             src={post.userId === user?.uid ? (auth.currentUser?.photoURL || post.userProfilePic) : post.userProfilePic} 
+             className="w-full h-full rounded-full object-cover" 
+             alt="music disc avatar" 
+           />
         </div>
       </div>
 
@@ -389,64 +398,63 @@ const ReelItem = ({ post }) => {
               <div className="p-2 bg-white/5 rounded-full" onClick={() => setShowComments(false)}><X size={20} className="text-zinc-400" /></div>
             </div>
 
-            {/* Comment List */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-6 no-scrollbar pb-24">
-              {comments.map((com) => (
-                <div key={com.id} className="group flex flex-col gap-2">
-                  <div className="flex gap-3 items-start">
-                    <img 
-                      src={com.userImg || 'https://via.placeholder.com/150'} 
-                      className="w-9 h-9 rounded-full object-cover ring-2 ring-white/5" 
-                      alt="User Avatar" 
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-boss-text text-[13px] font-bold">@{com.username}</p>
-                        <VerifiedBadge isVerified={com.isVerified} />
-                        <span className="text-[10px] text-zinc-500">• {com.likes || 0} likes</span>
-                      </div>
-                      <p className="text-zinc-200 text-[14px] mt-1 pr-4 leading-relaxed">{com.text}</p>
-                      
-                      <div className="flex items-center gap-4 mt-3">
-                        <button 
-                          onClick={() => {
-                            setCommentText(`@${com.username} `);
-                            // Logic to track that this is a reply can be added here
-                          }}
-                          className="text-[11px] font-extrabold text-zinc-500 uppercase tracking-tighter"
-                        >
-                          Reply
-                        </button>
-                        {(user?.uid === com.userId || user?.uid === post.userId) && (
-                          <button 
-                            onClick={() => deleteComment(com.id)} 
-                            className="text-[11px] font-extrabold text-red-500/70 uppercase tracking-tighter"
-                          >
-                            Delete
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-col items-center gap-1 pt-2" onClick={() => handleCommentLike(com.id, com.likedBy)}>
-                      <Heart size={18} className={com.likedBy?.includes(user?.uid) ? "text-red-500 fill-red-500" : "text-zinc-600"} />
-                    </div>
-                  </div>
+{/* Comment List */}
+<div className="flex-1 overflow-y-auto p-4 space-y-6 no-scrollbar pb-24">
+  {comments.map((com) => (
+    <div key={com.id} className="group flex flex-col gap-2">
+      <div className="flex gap-3 items-start">
+        {/* Dynamic StoryAvatar Implementation */}
+        <StoryAvatar 
+          userId={com.userId} 
+          profilePic={com.userImg} 
+          size="36px" 
+        />
+        
+        <div className="flex-1">
+          <div className="flex items-center gap-1.5">
+            <p className="text-boss-text text-[13px] font-bold">@{com.username}</p>
+            <VerifiedBadge isVerified={com.isVerified} />
+            <span className="text-[10px] text-zinc-500">• {com.likes || 0} likes</span>
+          </div>
+          <p className="text-zinc-200 text-[14px] mt-1 pr-4 leading-relaxed">{com.text}</p>
+          
+          <div className="flex items-center gap-4 mt-3">
+            <button 
+              onClick={() => setCommentText(`@${com.username} `)}
+              className="text-[11px] font-extrabold text-zinc-500 uppercase tracking-tighter"
+            >
+              Reply
+            </button>
+            {(user?.uid === com.userId || user?.uid === post.userId) && (
+              <button 
+                onClick={() => deleteComment(com.id)} 
+                className="text-[11px] font-extrabold text-red-500/70 uppercase tracking-tighter"
+              >
+                Delete
+              </button>
+            )}
+          </div>
+        </div>
+        
+        <div className="flex flex-col items-center gap-1 pt-2" onClick={() => handleCommentLike(com.id, com.likedBy)}>
+          <Heart size={18} className={com.likedBy?.includes(user?.uid) ? "text-red-500 fill-red-500" : "text-zinc-600"} />
+        </div>
+      </div>
 
-                  {/* Sub-comment Indicator and Subsection */}
-                  {com.replyCount > 0 && (
-                    <div className="ml-12 mt-2 flex flex-col gap-4 border-l border-zinc-800 pl-4">
-                      <div className="flex items-center gap-2 cursor-pointer group/arrow">
-                        <div className="w-4 h-[1px] bg-zinc-800"></div>
-                        <span className="text-[11px] font-bold text-zinc-500 flex items-center gap-1 group-hover/arrow:text-[#1877F2]">
-                          View {com.replyCount} replies <Play size={8} className="rotate-90 fill-current" />
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+      {/* Sub-comment Indicator and Subsection */}
+      {com.replyCount > 0 && (
+        <div className="ml-12 mt-2 flex flex-col gap-4 border-l border-zinc-800 pl-4">
+          <div className="flex items-center gap-2 cursor-pointer group/arrow">
+            <div className="w-4 h-[1px] bg-zinc-800"></div>
+            <span className="text-[11px] font-bold text-zinc-500 flex items-center gap-1 group-hover/arrow:text-[#1877F2]">
+              View {com.replyCount} replies <Play size={8} className="rotate-90 fill-current" />
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  ))}
+</div>
 
             {/* Input - Sticky at bottom with fixed padding for mobile */}
             <div className="absolute bottom-0 left-0 right-0 p-4 bg-transparent border-t border-white/5 pb-8">
