@@ -116,15 +116,23 @@ export default function EditProfile() {
             profilePic: downloadURL 
           });
 
+          const batch = writeBatch(db);
+
           // 2. Look up all past posts made by this user
           const postsQuery = query(collection(db, "posts"), where("userId", "==", auth.currentUser.uid));
           const postsSnapshot = await getDocs(postsQuery);
-          
-          // 3. Update 'userImg' across all of them in a single batch execution
-          const batch = writeBatch(db);
           postsSnapshot.forEach((postDoc) => {
             batch.update(postDoc.ref, { userImg: downloadURL });
           });
+
+          // 3. Look up all past Reels (videos) made by this user
+          const videosQuery = query(collection(db, "videos"), where("userId", "==", auth.currentUser.uid));
+          const videosSnapshot = await getDocs(videosQuery);
+          videosSnapshot.forEach((videoDoc) => {
+            batch.update(videoDoc.ref, { userProfilePic: downloadURL });
+          });
+          
+          // Execute updates across both collections safely
           await batch.commit();
           
           setProfilePic(downloadURL);
@@ -209,22 +217,30 @@ export default function EditProfile() {
       const currentActiveUsername = username || userData?.username;
 
       if (currentActiveUsername) {
+        const batch = writeBatch(db);
+        const currentVerificationStatus = updates.hasOwnProperty('isVerified') ? updates.isVerified : (userData?.isVerified || false);
+
         // Find ALL posts belonging to this specific user ID
         const postsQuery = query(collection(db, "posts"), where("userId", "==", auth.currentUser.uid));
         const postsSnapshot = await getDocs(postsQuery);
-        
-        // Determine the current live verification status to cascade
-        const currentVerificationStatus = updates.hasOwnProperty('isVerified') ? updates.isVerified : (userData?.isVerified || false);
-        
-        const batch = writeBatch(db);
         postsSnapshot.forEach((postDoc) => {
-          // Explicitly overwrite both fields to keep old records flawless
           batch.update(postDoc.ref, { 
             username: currentActiveUsername.toLowerCase().trim(),
             isVerified: currentVerificationStatus
           });
         });
-        // Run the batch execution update
+
+        // Find ALL Reels belonging to this specific user ID
+        const videosQuery = query(collection(db, "videos"), where("userId", "==", auth.currentUser.uid));
+        const videosSnapshot = await getDocs(videosQuery);
+        videosSnapshot.forEach((videoDoc) => {
+          batch.update(videoDoc.ref, { 
+            username: currentActiveUsername.toLowerCase().trim(),
+            isVerified: currentVerificationStatus
+          });
+        });
+        
+        // Run global batch update
         await batch.commit();
       }
 

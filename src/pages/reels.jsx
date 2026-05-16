@@ -290,20 +290,21 @@ const ReelItem = ({ post }) => {
           {showOptionsMenu && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setShowOptionsMenu(false)} />
-              <div className="absolute right-0 mt-2 w-48 bg-[#1a1a20] border border-white/10 rounded-2xl p-1.5 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150">
+              <div className="absolute right-0 mt-2 w-64 bg-[#1c1c1e] border border-white/10 rounded-2xl shadow-2xl overflow-hidden py-1 z-50 animate-in fade-in zoom-in-95 duration-100">
                 {user && user.uid !== post.userId ? (
                   <button 
                     onClick={() => {
-                      setShowOptionsMenu(false);
                       submitGlobalReport('reel', post);
+                      setShowOptionsMenu(false); // 👈 Automatically closes the dropdown options frame instantly
                     }}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 text-xs font-bold text-red-400 hover:bg-white/5 rounded-xl transition-all"
+                    className="w-full px-4 py-3 flex items-center gap-3 text-red-500 hover:bg-white/5 text-xs font-bold transition-colors"
                   >
-                    <AlertTriangle size={16} />
-                    Report Content
+                    <AlertTriangle size={16} /> Report post
                   </button>
                 ) : (
-                  <p className="text-[11px] font-medium text-zinc-500 text-center py-2">Your Reel Option</p>
+                  <div className="px-4 py-3 text-center text-zinc-500 text-xs font-bold uppercase tracking-wider">
+                    Your Reel Options
+                  </div>
                 )}
               </div>
             </>
@@ -314,7 +315,13 @@ const ReelItem = ({ post }) => {
       {/* 4. RIGHT SIDE ACTIONS */}
       <div className="absolute right-3 bottom-24 flex flex-col gap-5 items-center z-30">
         <div className="relative mb-2" onClick={() => navigate(`/profile/${post.userId}`)}>
-          <div className="w-11 h-11 rounded-full border-2 border-white overflow-hidden shadow-lg"><img src={post.userProfilePic || 'https://via.placeholder.com/150'} className="w-full h-full object-cover" alt="pfp" /></div>
+          <div className="w-11 h-11 rounded-full border-2 border-white overflow-hidden shadow-lg">
+            <img 
+              src={post.userId === user?.uid ? (auth.currentUser?.photoURL || post.userProfilePic) : post.userProfilePic} 
+              className="w-full h-full object-cover" 
+              alt="pfp" 
+            />
+          </div>
           <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-[#1877F2] rounded-full w-4 h-4 flex items-center justify-center border-2 border-black"><span className="text-boss-text text-[10px] font-bold">+</span></div>
         </div>
 
@@ -354,10 +361,12 @@ const ReelItem = ({ post }) => {
         <div className="flex items-center gap-2 mb-2">
           <div className="flex items-center gap-1">
             <h1 className="text-xl font-bold lowercase tracking-tight">
-              {post.username || post.authorName || "..."}
+              {post.userId === user?.uid ? (post.username || "me") : (post.username || post.authorName || "...")}
             </h1>
-            {/* Direct dynamic verification evaluation */}
-            <VerifiedBadge isVerified={post.isVerified === true} />
+            {/* If it's your post, look up live authentication parameters locally if available */}
+            <VerifiedBadge 
+              isVerified={post.isVerified === true} 
+            />
           </div>
           <span className="w-1 h-1 bg-white rounded-full"></span>
           <button className="text-[11px] font-bold text-[#1877F2]">Follow</button>
