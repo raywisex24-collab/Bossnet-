@@ -40,12 +40,15 @@ export default function AdminUsers() {
     u.fullName?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  if (loading) return <div className="min-h-screen bg-boss-bg flex items-center justify-center"><div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>;
+  if (loading) return <div className="min-h-screen !bg-black flex items-center justify-center"><div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>;
   if (!isAdmin) return null;
 
   return (
-    <div className="min-h-screen bg-boss-bg text-boss-text font-sans pb-12">
-      <div className="flex items-center gap-4 p-4 border-b border-white/10 sticky top-0 bg-boss-bg z-50">
+    /* We added '!bg-black' to force the container background to deep dark pitch black 
+      overriding global CSS rules or runtime theme attributes 
+    */
+    <div className="min-h-screen !bg-black text-boss-text font-sans pb-12">
+      <div className="flex items-center gap-4 p-4 border-b border-white/10 sticky top-0 !bg-black z-50">
         <ArrowLeft onClick={() => navigate('/admin')} className="cursor-pointer text-zinc-400" />
         <h1 className="text-lg font-bold">Account Directory</h1>
       </div>
@@ -64,7 +67,17 @@ export default function AdminUsers() {
               className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-xl hover:bg-white/5 transition-all cursor-pointer active:scale-99"
             >
               <div className="flex items-center gap-3">
-                <img src={user.profilePic || 'https://via.placeholder.com/150'} className="w-10 h-10 rounded-full object-cover border border-white/10" alt="" />
+                {/* Condition: If user.profilePic exists, render image. Otherwise, fall back to clean inline system SVG */}
+                {user.profilePic ? (
+                  <img src={user.profilePic} className="w-10 h-10 rounded-full object-cover border border-white/10" alt="" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-zinc-800 border border-white/10 flex items-center justify-center text-zinc-400 shrink-0">
+                    <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
+                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 2 4 2zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                  </div>
+                )}
+                
                 <div>
                   <h4 className="font-bold text-sm flex items-center gap-1">
                     {user.fullName || "No Name"}

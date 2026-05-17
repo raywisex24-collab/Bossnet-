@@ -12,6 +12,7 @@ export default function Feed() {
   const [userData, setUserData] = useState(null);
   const [followingStories, setFollowingStories] = useState([]);
   const [posts, setPosts] = useState([]);
+  const [globalUsersMap, setGlobalUsersMap] = useState({}); // 👈 Added to track active badge states globally
   const [zoomedImage, setZoomedImage] = useState(null);
   const [hasSelfStory, setHasSelfStory] = useState(false); // 👈 Added missing state handler
   
@@ -101,9 +102,19 @@ export default function Feed() {
       setPosts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
 
+    // Real-time loop mapping profile attributes dynamically across the entire app space
+    const unsubGlobalUsers = onSnapshot(collection(db, "users"), (snapshot) => {
+      const userMap = {};
+      snapshot.docs.forEach(doc => {
+        userMap[doc.id] = doc.data();
+      });
+      setGlobalUsersMap(userMap);
+    });
+
     return () => { 
       unsubUser(); 
       unsubPosts(); 
+      unsubGlobalUsers(); // 👈 Unsubscribe from the global users listener
       window.removeEventListener('popstate', handleBackButton); // Clean up the listener on unmount
     };
   }, [navigate]);
@@ -406,9 +417,13 @@ export default function Feed() {
   />
   <div>
 <div className="flex items-center gap-1">
-  <h4 className="font-bold text-sm text-boss-text">{post.username}</h4>
+  <h4 className="font-bold text-sm text-boss-text">
+    {globalUsersMap[post.userId]?.username || post.username}
+  </h4>
   <VerifiedBadge 
-    isVerified={post.userId === auth.currentUser?.uid ? (userData?.isVerified || false) : (post.isVerified || false)} 
+    /* Reads the state straight from the live database map. 
+       If an admin changes it, the badge toggles instantly! */
+    isVerified={globalUsersMap[post.userId]?.isVerified || false} 
   />
 </div>
                     <div className="flex items-center gap-1 text-[10px] text-zinc-500 font-bold uppercase tracking-widest">

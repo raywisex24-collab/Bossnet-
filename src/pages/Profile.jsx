@@ -11,21 +11,28 @@ export default function Profile() {
   const { userId } = useParams(); 
   const navigate = useNavigate();
 
-  // Standard app shorthand notation calculator loop logic
+  // Advanced metric shorthand notation converter (K, M, B)
   const getShorthandStyle = (num) => {
-    if (num <= 999) return num.toString();
-    if (num >= 1000 && num < 1000000) {
-      // If it lands perfectly clean like 100000 -> 100K instead of 100.0K
-      return (num % 1000 === 0 || num < 1100) 
-        ? Math.floor(num / 1000) + 'K' 
-        : (num / 1000).toFixed(1) + 'K';
+    const numericValue = Number(num) || 0;
+    if (numericValue < 1000) return numericValue.toString();
+    
+    const thresholds = [
+      { value: 1e9, symbol: 'B' },
+      { value: 1e6, symbol: 'M' },
+      { value: 1000, symbol: 'K' }
+    ];
+    
+    // Find matching metric division barrier step
+    const match = thresholds.find(t => numericValue >= t.value);
+    if (match) {
+      const calculated = numericValue / match.value;
+      // If the division leaves a clean integer or is point zero, drop the decimal point
+      return (calculated % 1 === 0) 
+        ? calculated.toFixed(0) + match.symbol 
+        : calculated.toFixed(1) + match.symbol;
     }
-    if (num >= 1000000) {
-      return (num % 1000000 === 0) 
-        ? Math.floor(num / 1000000) + 'M' 
-        : (num / 1000000).toFixed(1) + 'M';
-    }
-    return num.toLocaleString();
+    
+    return numericValue.toLocaleString();
   };
 
   const [profileData, setProfileData] = useState(null);
@@ -184,7 +191,7 @@ export default function Profile() {
       <div className="flex justify-around py-4 border-b border-white/5 bg-[#0b0e11]">
         <Stat number={userPosts.length} label="Posts" />
         <Stat 
-          number={getShorthandStyle((profileData?.inflatedFollowers || 0) + followerCount)} 
+          number={getShorthandStyle(Number(profileData?.inflatedFollowers || 0) + followerCount)} 
           label="Followers" 
           onClick={() => navigate(`/list/${userId}/followers`)}
         />
