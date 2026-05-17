@@ -152,7 +152,7 @@ export default function AdminPanel() {
       await addDoc(collection(db, "notifications"), {
         toUserId: "all", 
         fromUserId: auth.currentUser.uid,
-        fromUsername: "BossNet Terminal",
+        fromUsername: "SYSTEM ALERT",
         fromUserImg: "/bossnet-logo.png", 
         type: "announcement",
         text: announcement,
@@ -190,7 +190,7 @@ export default function AdminPanel() {
         <ArrowLeft onClick={() => navigate(-1)} className="cursor-pointer text-zinc-400 hover:text-white" />
         <div className="flex items-center gap-2">
           <Shield className="text-blue-500" size={22} />
-          <h1 className="text-xl font-bold tracking-tight">Bossnet Terminal</h1>
+          <h1 className="text-xl font-bold tracking-tight">SYSTEM ALERT</h1>
         </div>
       </div>
 

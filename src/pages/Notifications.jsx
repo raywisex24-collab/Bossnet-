@@ -4,7 +4,7 @@ import { auth, db } from '../firebase';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, writeBatch, where } from 'firebase/firestore';
 import { 
   ChevronLeft, Bell, Heart, MessageSquare, UserPlus, 
-  Clock, CheckCircle, Repeat, Bookmark, Mail, Megaphone // 👈 Added Megaphone here
+  Clock, CheckCircle, Repeat, Bookmark, Mail, Megaphone, Trash2 // 👈 Verified Trash2 is appended here
 } from 'lucide-react';
 import VerifiedBadge from './VerifiedBadge'; 
 
@@ -21,14 +21,20 @@ export default function Notifications() {
     }
 
     const notifRef = collection(db, "notifications");
-    // Simple query, no indexes needed!
     const q = query(notifRef, orderBy("createdAt", "desc")); 
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
+      const dismissedGlobals = JSON.parse(localStorage.getItem('dismissed_global_notifs') || '[]');
+      
       const notifData = snapshot.docs
         .map(doc => ({ id: doc.id, ...doc.data() }))
-        // Filter out items that don't belong to this user or the public channel
-        .filter(notif => notif.toUserId === user.uid || notif.toUserId === "all");
+        .filter(notif => {
+          // 1. Must belong to current user or be designated public
+          const isTargeted = notif.toUserId === user.uid || notif.toUserId === "all";
+          // 2. Must not be present inside local dismissal array store keys
+          const isLocallyDismissed = dismissedGlobals.includes(notif.id);
+          return isTargeted && !isLocallyDismissed;
+        });
 
       setNotifications(notifData);
       setLoading(false);
@@ -91,6 +97,7 @@ export default function Notifications() {
   };
 
   const markAllRead = async () => {
+    if (!notifications.some(n => !n.read)) return;
     const batch = writeBatch(db);
     notifications.forEach((n) => {
       if (!n.read) {
@@ -99,6 +106,60 @@ export default function Notifications() {
       }
     });
     await batch.commit();
+  };
+
+  const deleteNotification = async (notif, e) => {
+    e.stopPropagation(); // Stops routing from clicking the underlying parent card layout
+    try {
+      if (notif.toUserId === "all") {
+        // Global system announcement: Hide it locally on this client instance only
+        const hiddenNotifs = JSON.parse(localStorage.getItem('dismissed_global_notifs') || '[]');
+        hiddenNotifs.push(notif.id);
+        localStorage.setItem('dismissed_global_notifs', JSON.stringify(hiddenNotifs));
+        
+        // Re-filter UI array dynamically so it drops off without a hard page reload
+        setNotifications(prev => prev.filter(n => n.id !== notif.id));
+      } else {
+        // Personal normal notification: Wipe it out of Firestore database fully
+        const { deleteDoc } = await import('firebase/firestore');
+        await deleteDoc(doc(db, "notifications", notif.id));
+      }
+    } catch (err) {
+      console.error("Error deleting item:", err);
+    }
+  };
+
+  const clearAllNotifications = async () => {
+    if (!window.confirm("Are you sure you want to clear your notifications log, boss?")) return;
+    
+    try {
+      const batch = writeBatch(db);
+      const hiddenNotifs = JSON.parse(localStorage.getItem('dismissed_global_notifs') || '[]');
+      let containsFirestoreDeletes = false;
+
+      notifications.forEach((n) => {
+        if (n.toUserId === "all") {
+          // Track locally to hide from view
+          hiddenNotifs.push(n.id);
+        } else {
+          // Personal item: Package it to be wiped from production Firestore paths
+          const ref = doc(db, "notifications", n.id);
+          batch.delete(ref);
+          containsFirestoreDeletes = true;
+        }
+      });
+
+      localStorage.setItem('dismissed_global_notifs', JSON.stringify(hiddenNotifs));
+      
+      if (containsFirestoreDeletes) {
+        await batch.commit();
+      } else {
+        // If there were only global alerts, manually empty the view state
+        setNotifications([]);
+      }
+    } catch (err) {
+      console.error("Error running batch clear setup:", err);
+    }
   };
 
   const getIcon = (type) => {
@@ -138,14 +199,31 @@ export default function Notifications() {
           </button>
           <h1 className="text-lg font-bold tracking-tight">Notifications</h1>
         </div>
-        {notifications.some(n => !n.read) && (
+        
+        <div className="flex items-center gap-2">
+          {/* DYNAMIC MARK ALL READ BUTTON */}
           <button 
             onClick={markAllRead}
-            className="text-[10px] font-black uppercase tracking-widest text-blue-500 bg-blue-500/10 px-3 py-1.5 rounded-full"
+            disabled={!notifications.some(n => !n.read)}
+            className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full transition-colors ${
+              notifications.some(n => !n.read) 
+                ? 'text-blue-500 bg-blue-500/10 active:bg-blue-500/20' 
+                : 'text-zinc-500 bg-zinc-800/40 cursor-not-allowed'
+            }`}
           >
-            Clear All
+            Mark Read
           </button>
-        )}
+
+          {/* CLEAR ALL ACTIONS BUTTON */}
+          {notifications.length > 0 && (
+            <button 
+              onClick={clearAllNotifications}
+              className="text-[10px] font-black uppercase tracking-widest text-red-500 bg-red-500/10 px-3 py-1.5 rounded-full active:bg-red-500/20"
+            >
+              Clear All
+            </button>
+          )}
+        </div>
       </div>
 
       {/* List */}
@@ -206,7 +284,19 @@ export default function Notifications() {
                 </div>
               </div>
 
-              {!notif.read && <div className="w-2 h-2 bg-blue-500 rounded-full shadow-[0_0_10px_#3b82f6]" />}
+              {/* INTERACTION STATUS AND REMOVAL GROUP CONTAINER */}
+              <div className="flex items-center gap-3">
+                {!notif.read && <div className="w-2 h-2 bg-blue-500 rounded-full shadow-[0_0_10px_#3b82f6] shrink-0" />}
+                
+                <button 
+                  onClick={(e) => deleteNotification(notif, e)}
+                  className="p-2 text-zinc-600 hover:text-red-400 rounded-full transition-colors active:scale-75 hover:bg-white/5 shrink-0"
+                  title="Remove alert record"
+                >
+                  {/* Trash2 handles look variations gracefully inside your existing bundle */}
+                  <Trash2 size={14} />
+                </button>
+              </div>
             </div>
           ))
         ) : (
