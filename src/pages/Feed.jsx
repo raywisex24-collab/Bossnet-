@@ -13,6 +13,7 @@ export default function Feed() {
   const [followingStories, setFollowingStories] = useState([]);
   const [posts, setPosts] = useState([]);
   const [zoomedImage, setZoomedImage] = useState(null);
+  const [hasSelfStory, setHasSelfStory] = useState(false); // 👈 Added missing state handler
   
   // New States for Menu and Reporting
   const [activeMenu, setActiveMenu] = useState(null);
@@ -22,6 +23,33 @@ export default function Feed() {
   const [activePostForComments, setActivePostForComments] = useState(null);
   const [commentText, setCommentText] = useState("");
   const [currentComments, setCurrentComments] = useState([]);
+  const [latestAnnouncement, setLatestAnnouncement] = useState(null);
+  const [isBannerVisible, setIsBannerVisible] = useState(true);
+
+  useEffect(() => {
+    const q = query(
+      collection(db, "announcements"),
+      orderBy("createdAt", "desc"),
+      limit(1)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      if (!snapshot.empty) {
+        const data = snapshot.docs[0].data();
+        const annId = snapshot.docs[0].id;
+        const dismissedId = localStorage.getItem('dismissed_announcement_id');
+        
+        if (dismissedId !== annId) {
+          setLatestAnnouncement({ id: annId, ...data });
+          setIsBannerVisible(true);
+        }
+      } else {
+        setLatestAnnouncement(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // 1. Fetch User and Posts + Back Button Lock
   useEffect(() => {
@@ -256,6 +284,32 @@ export default function Feed() {
 
   return (
     <div className="w-full bg-boss-bg text-[#e4e6eb] min-h-screen">
+      {/* GLOBAL SYSTEM ANNOUNCEMENT BANNER */}
+      {latestAnnouncement && isBannerVisible && (
+        <div className="w-full bg-gradient-to-r from-purple-900/90 via-indigo-950/90 to-purple-900/90 border-b border-purple-500/30 text-white px-4 py-3 relative flex items-center justify-between animate-in slide-in-from-top duration-300 z-[100] backdrop-blur-md">
+          <div className="flex items-center gap-3 pr-8 max-w-lg mx-auto w-full">
+            <div className="p-1.5 bg-purple-500/20 text-purple-400 rounded-lg shrink-0 animate-pulse">
+              <Globe size={16} />
+            </div>
+            <div className="overflow-hidden w-full">
+              <p className="text-[10px] font-black uppercase tracking-widest text-purple-400 mb-0.5">SYSTEM ALERT</p>
+              <p className="text-xs font-semibold text-zinc-100 leading-snug tracking-wide">
+                {latestAnnouncement.text}
+              </p>
+            </div>
+          </div>
+          <button 
+            onClick={() => {
+              localStorage.setItem('dismissed_announcement_id', latestAnnouncement.id);
+              setIsBannerVisible(false);
+            }} 
+            className="absolute right-4 p-1 rounded-full text-zinc-400 hover:text-white transition-all active:scale-75"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       <main className="w-full max-w-lg mx-auto pb-10">
         
         {/* Stories Tray - Persistent Header Style */}

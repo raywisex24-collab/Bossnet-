@@ -21,18 +21,15 @@ export default function Notifications() {
     }
 
     const notifRef = collection(db, "notifications");
-    const q = query(
-      notifRef, 
-      where("toUserId", "==", user.uid),
-      orderBy("createdAt", "desc")
-    );
+    // Simple query, no indexes needed!
+    const q = query(notifRef, orderBy("createdAt", "desc")); 
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      // onSnapshot automatically triggers when a doc is added, updated, OR DELETED
-      const notifData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const notifData = snapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() }))
+        // Filter out items that don't belong to this user or the public channel
+        .filter(notif => notif.toUserId === user.uid || notif.toUserId === "all");
+
       setNotifications(notifData);
       setLoading(false);
     }, (error) => {
@@ -79,8 +76,11 @@ export default function Notifications() {
         break;
 
       case 'announcement':
-        // If it's a general system announcement, you could open a modal or a specific page
-        if (notif.link) navigate(notif.link);
+        if (notif.link) {
+          navigate(notif.link);
+        } else {
+          navigate('/feed'); // 👈 Directs them to the main feed to read the top banner asset
+        }
         break;
 
       default:
@@ -104,6 +104,7 @@ export default function Notifications() {
   const getIcon = (type) => {
     switch (type) {
       case 'like': 
+      case 'announcement': return <Megaphone size={10} className="text-purple-400 fill-purple-950/20" />; // 👈 Added custom styling for announcements
       case 'reel_like': return <Heart size={10} className="text-boss-text fill-red-500" />;
       case 'comment': 
       case 'reel_comment': return <MessageSquare size={10} className="text-boss-text fill-blue-500" />;
@@ -119,8 +120,12 @@ export default function Notifications() {
 
   const formatTime = (ts) => {
     if (!ts) return "Just now";
-    const date = ts.toDate();
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    try {
+      const date = ts.toDate ? ts.toDate() : new Date(ts);
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+      return "Just now";
+    }
   };
 
   return (
@@ -189,8 +194,9 @@ export default function Notifications() {
                     {notif.type === 'reel_like' && ' liked your reel'}
                     {notif.type === 'reel_comment' && ' commented on your reel'}
                     {notif.type === 'reel_save' && ' saved your reel'}
+                    {notif.type === 'announcement' && ` issued a global broadcast: "${notif.text}"`}
                     {/* Catch-all for System or unknown notifications */}
-                    {!['like', 'comment', 'follow', 'reshare', 'save', 'verified', 'new_message', 'reel_like', 'reel_comment', 'reel_save'].includes(notif.type) && ` ${notif.text || 'Notification received'}`}
+                    {!['like', 'comment', 'follow', 'reshare', 'save', 'verified', 'new_message', 'reel_like', 'reel_comment', 'reel_save', 'announcement'].includes(notif.type) && ` ${notif.text || 'Notification received'}`}
                   </span>
                 </div>
                 

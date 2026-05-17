@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
 import { 
-  collection, doc, getDoc, onSnapshot, updateDoc, deleteDoc, addDoc 
-} from 'firebase/firestore';
+  collection, doc, getDoc, onSnapshot, updateDoc, deleteDoc, addDoc, serverTimestamp 
+} from 'firebase/firestore'; // 👈 Added serverTimestamp here
 import { useNavigate } from 'react-router-dom';
 import { 
   Shield, CheckCircle, XCircle, Search, ArrowLeft, 
@@ -141,14 +141,30 @@ export default function AdminPanel() {
     if (!announcement.trim()) return;
 
     try {
+      // 1. This updates the rolling banner on the home feed
       await addDoc(collection(db, "announcements"), {
         text: announcement,
-        createdAt: new Date(),
+        createdAt: serverTimestamp(), 
         createdBy: auth.currentUser.uid
       });
+
+      // 2. THIS IS THE EXACT BLOCK: This injects it into everyone's notification tab
+      await addDoc(collection(db, "notifications"), {
+        toUserId: "all", 
+        fromUserId: auth.currentUser.uid,
+        fromUsername: "BossNet Terminal",
+        fromUserImg: "/bossnet-logo.png", 
+        type: "announcement",
+        text: announcement,
+        isVerified: true,
+        read: false,
+        createdAt: serverTimestamp()
+      });
+
       setAnnouncement("");
-      Swal.fire("Broadcast Sent!", "Everyone scrolling the feed will see this announcement.", "success");
+      Swal.fire("Broadcast Sent!", "Everyone scrolling the feed and notifications center will see this, boss.", "success");
     } catch (err) {
+      console.error("Broadcast Error:", err);
       Swal.fire("Error", "Broadcast deployment failed", "error");
     }
   };
