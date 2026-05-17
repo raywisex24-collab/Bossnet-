@@ -4,7 +4,7 @@ import { auth, db } from '../firebase';
 import { collection, query, orderBy, onSnapshot, doc, updateDoc, writeBatch, where } from 'firebase/firestore';
 import { 
   ChevronLeft, Bell, Heart, MessageSquare, UserPlus, 
-  Clock, CheckCircle, Repeat, Bookmark, Mail 
+  Clock, CheckCircle, Repeat, Bookmark, Mail, Megaphone // 👈 Added Megaphone here
 } from 'lucide-react';
 import VerifiedBadge from './VerifiedBadge'; 
 
@@ -103,8 +103,8 @@ export default function Notifications() {
 
   const getIcon = (type) => {
     switch (type) {
-      case 'like': 
-      case 'announcement': return <Megaphone size={10} className="text-purple-400 fill-purple-950/20" />; // 👈 Added custom styling for announcements
+      case 'like': return <Heart size={10} className="text-boss-text fill-red-500" />; // 👈 Split out clean target return
+      case 'announcement': return <Megaphone size={10} className="text-purple-400 fill-purple-950/20" />; 
       case 'reel_like': return <Heart size={10} className="text-boss-text fill-red-500" />;
       case 'comment': 
       case 'reel_comment': return <MessageSquare size={10} className="text-boss-text fill-blue-500" />;
