@@ -166,7 +166,10 @@ export default function Profile() {
       <div className="flex justify-around py-4 border-b border-white/5 bg-[#0b0e11]">
         <Stat number={userPosts.length} label="Posts" />
         <Stat 
-          number={followerCount.toLocaleString()} 
+          number={profileData?.isAdmin === true 
+            ? (98000 + followerCount).toLocaleString() 
+            : followerCount.toLocaleString()
+          } 
           label="Followers" 
           onClick={() => navigate(`/list/${userId}/followers`)}
         />
