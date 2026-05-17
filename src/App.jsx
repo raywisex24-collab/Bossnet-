@@ -42,6 +42,8 @@ import EditProfile from './pages/EditProfile';
 import EmailUpdate from './pages/EmailUpdate'; 
 import SearchPage from './pages/SearchPage';
 import AdminPanel from './pages/AdminPanel'; // 👈 ADD THIS LINE
+import AdminUsers from './pages/AdminUsers';
+import AdminUserEdit from './pages/AdminUserEdit';
 import Notifications from './pages/Notifications'; 
 import ProtectedRoute from "./ProtectedRoute";
 import EditorPage from './pages/EditorPage'; 
@@ -65,7 +67,7 @@ const LayoutWrapper = ({ children }) => {
     '/upload-reel', '/upload-story', '/story-viewer', '/settings', 
     '/settings/theme', '/settings/language', '/delete-account', 
     '/incoming-call', '/reels', '/editor', '/story-viewer', 
-    '/terms', '/support', '/admin', // 👈 ADD IT HERE
+    '/terms', '/support', '/admin', '/admin/users', // 👈 Keep this one here
   ];
 
   const hideHeaderOnlyOn = [
@@ -78,8 +80,17 @@ const LayoutWrapper = ({ children }) => {
   const isVideoCall = location.pathname.startsWith('/video-call/');
   const isVoiceCall = location.pathname.startsWith('/voice-call/');
   const isChatSettings = location.pathname.startsWith('/chat-settings/');
+  const isAdminUserEditPage = location.pathname.startsWith('/admin/users/edit/'); // 👈 ADD THIS LINE HERE
 
-  const showNavbar = !hideAllUIOn.includes(location.pathname) && !isListPage && !isEditPostPage && !isVideoCall && !isVoiceCall && !isChatSettings;
+  // Updated visibility configuration logic 
+  const showNavbar = 
+    !hideAllUIOn.includes(location.pathname) && 
+    !isListPage && 
+    !isEditPostPage && 
+    !isVideoCall && 
+    !isVoiceCall && 
+    !isChatSettings &&
+    !isAdminUserEditPage; // 👈 ADD THIS HERE
   const showTopHeader = showNavbar && !hideHeaderOnlyOn.includes(location.pathname) && !isOtherUserProfile && !isEditPostPage && !isVideoCall && !isVoiceCall;
 
 const isSplash = ['/', '/pre-splash', '/splash'].includes(location.pathname);
@@ -158,7 +169,9 @@ function App() {
             <Route path="/edit-post/:postId" element={<ProtectedRoute><EditPost /></ProtectedRoute>} />
             <Route path="/list/:userId/:type" element={<ProtectedRoute><FollowList /></ProtectedRoute>} />
             <Route path="/me" element={<ProtectedRoute><PersonalProfile /></ProtectedRoute>} />
-            <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} /> {/* 👈 ADD THIS LINE */}
+            <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} /> 
+            <Route path="/admin/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} /> 
+            <Route path="/admin/users/edit/:userId" element={<ProtectedRoute><AdminUserEdit /></ProtectedRoute>} /> 
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/settings/theme" element={<ProtectedRoute><ThemeSettings /></ProtectedRoute>} />
             <Route path="/settings/language" element={<ProtectedRoute><LanguageSettings /></ProtectedRoute>} />
