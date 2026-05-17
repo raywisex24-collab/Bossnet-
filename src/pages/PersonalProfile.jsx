@@ -180,12 +180,8 @@ export default function PersonalProfile() {
               onClick={() => navigate(`/list/${auth.currentUser?.uid}/followers`)} 
               className="cursor-pointer active:opacity-50"
             >
-              {/* If you are an admin, inflate your local personal profile view too */}
               <p className="text-lg font-bold">
-                {profileData?.isAdmin === true 
-                  ? (98000 + followerCount).toLocaleString() 
-                  : followerCount.toLocaleString()
-                }
+                {(followerCount + (parseInt(profileData?.inflatedFollowers || 0, 10))).toLocaleString()}
               </p>
               <p className="text-sm text-gray-400">followers</p>
             </div>

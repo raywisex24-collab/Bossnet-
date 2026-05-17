@@ -10,6 +10,24 @@ import VerifiedBadge from './VerifiedBadge'; // Since they are in the same folde
 export default function Profile() {
   const { userId } = useParams(); 
   const navigate = useNavigate();
+
+  // Standard app shorthand notation calculator loop logic
+  const getShorthandStyle = (num) => {
+    if (num <= 999) return num.toString();
+    if (num >= 1000 && num < 1000000) {
+      // If it lands perfectly clean like 100000 -> 100K instead of 100.0K
+      return (num % 1000 === 0 || num < 1100) 
+        ? Math.floor(num / 1000) + 'K' 
+        : (num / 1000).toFixed(1) + 'K';
+    }
+    if (num >= 1000000) {
+      return (num % 1000000 === 0) 
+        ? Math.floor(num / 1000000) + 'M' 
+        : (num / 1000000).toFixed(1) + 'M';
+    }
+    return num.toLocaleString();
+  };
+
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   
@@ -166,10 +184,7 @@ export default function Profile() {
       <div className="flex justify-around py-4 border-b border-white/5 bg-[#0b0e11]">
         <Stat number={userPosts.length} label="Posts" />
         <Stat 
-          number={profileData?.isAdmin === true 
-            ? (98000 + followerCount).toLocaleString() 
-            : followerCount.toLocaleString()
-          } 
+          number={getShorthandStyle((profileData?.inflatedFollowers || 0) + followerCount)} 
           label="Followers" 
           onClick={() => navigate(`/list/${userId}/followers`)}
         />

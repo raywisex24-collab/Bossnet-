@@ -23,6 +23,7 @@ export default function AdminPanel() {
   const [reports, setReports] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [announcement, setAnnouncement] = useState("");
+  const [inflationValues, setInflationValues] = useState({}); // 👈 Tracks temporary input numbers
 
   // 1. Security Check: Verify Admin Status
   useEffect(() => {
@@ -78,6 +79,18 @@ export default function AdminPanel() {
       Swal.fire("Updated", `Verification status changed!`, "success");
     } catch (err) {
       Swal.fire("Error", "Failed to update validation", "error");
+    }
+  };
+
+  const updateInflationCount = async (userId) => {
+    const amount = parseInt(inflationValues[userId] || 0, 10);
+    try {
+      await updateDoc(doc(db, "users", userId), { 
+        inflatedFollowers: amount > 0 ? amount : 0 
+      });
+      Swal.fire("Success", `Follower count adjusted by +${amount.toLocaleString()}!`, "success");
+    } catch (err) {
+      Swal.fire("Error", "Failed to update target inflation number", "error");
     }
   };
 
@@ -256,23 +269,42 @@ export default function AdminPanel() {
                     </div>
                   </div>
 
-                  {/* Dual Action Controls */}
-                  <div className="flex items-center gap-2">
-                    {/* Verification Toggle */}
-                    <button 
-                      onClick={() => toggleVerification(user.id, user.isVerified)}
-                      className={`p-2 rounded-xl border transition-all ${user.isVerified ? 'bg-blue-600/20 border-blue-500 text-blue-400' : 'bg-zinc-800 border-white/5 text-zinc-500'}`}
-                    >
-                      <CheckCircle size={18} />
-                    </button>
+                  {/* Expanded Admin Action Controls */}
+                  <div className="flex flex-col items-end gap-2">
+                    <div className="flex items-center gap-2">
+                      {/* Verification Toggle */}
+                      <button 
+                        onClick={() => toggleVerification(user.id, user.isVerified)}
+                        className={`p-2 rounded-xl border transition-all ${user.isVerified ? 'bg-blue-600/20 border-blue-500 text-blue-400' : 'bg-zinc-800 border-white/5 text-zinc-500'}`}
+                      >
+                        <CheckCircle size={18} />
+                      </button>
 
-                    {/* Ban Toggle */}
-                    <button 
-                      onClick={() => toggleBanStatus(user.id, user.isBanned)}
-                      className={`p-2 rounded-xl border transition-all ${user.isBanned ? 'bg-red-600/20 border-red-500 text-red-500' : 'bg-zinc-800 border-white/5 text-zinc-400 hover:text-red-400'}`}
-                    >
-                      {user.isBanned ? <UserCheck size={18} /> : <UserX size={18} />}
-                    </button>
+                      {/* Ban Toggle */}
+                      <button 
+                        onClick={() => toggleBanStatus(user.id, user.isBanned)}
+                        className={`p-2 rounded-xl border transition-all ${user.isBanned ? 'bg-red-600/20 border-red-500 text-red-500' : 'bg-zinc-800 border-white/5 text-zinc-400 hover:text-red-400'}`}
+                      >
+                        {user.isBanned ? <UserCheck size={18} /> : <UserX size={18} />}
+                      </button>
+                    </div>
+
+                    {/* Dynamic Inflation Input Box Layout */}
+                    <div className="flex items-center bg-white/5 border border-white/10 rounded-xl px-2 py-1 max-w-[140px]">
+                      <input 
+                        type="number" 
+                        placeholder={user.inflatedFollowers ? `+${user.inflatedFollowers}` : "Add fakes..."}
+                        value={inflationValues[user.id] || ""}
+                        onChange={(e) => setInflationValues(prev => ({ ...prev, [user.id]: e.target.value }))}
+                        className="w-full bg-transparent text-[11px] font-bold text-boss-text outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                      <button 
+                        onClick={() => updateInflationCount(user.id)}
+                        className="text-[9px] font-black uppercase text-blue-400 ml-1 bg-blue-500/10 px-1.5 py-1 rounded"
+                      >
+                        Set
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
