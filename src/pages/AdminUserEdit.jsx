@@ -9,16 +9,27 @@ import VerifiedBadge from './VerifiedBadge'; // 👈 Added custom badge import h
 // Helper engine to cleanly format last seen timelines relative to now
 const formatLastSeen = (timestamp) => {
   if (!timestamp) return "Never";
-  const date = timestamp instanceof Timestamp ? timestamp.toDate() : new Date(timestamp);
+  // Extract date correctly whether it's a Firestore Timestamp or an ISO string payload
+  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
   const now = new Date();
   const diffMs = now - date;
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMins / 6000);
   
-  if (diffMins < 1) return "Just now";
+  const diffSecs = Math.floor(diffMs / 1000);
+  const diffMins = Math.floor(diffSecs / 60);
+  const diffHours = Math.floor(diffMins / 60);
+
+  if (diffSecs < 60) return "Just now";
   if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${Math.floor(diffMins / 60)}h ago`;
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  if (diffHours < 48) return `${diffHours}h ago`;
+  
+  // Custom layout override for anything older than 48 hours (months, weeks, etc.)
+  return date.toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric', 
+    hour: '2-digit', 
+    minute: '2-digit',
+    hour12: true 
+  });
 };
 
 export default function AdminUserEdit() {
@@ -239,7 +250,7 @@ export default function AdminUserEdit() {
     }
   };
 
-  // 6. Direct Notification Dispatcher Engine
+  // 6. Direct Notification Dispatcher Engine (Target Route Sync)
   const dispatchDirectNotification = async () => {
     const { value: text } = await Swal.fire({
       title: 'Dispatch System Notification',
@@ -255,36 +266,26 @@ export default function AdminUserEdit() {
 
     if (text && text.trim()) {
       try {
-        // If your schema nests notifications inside a subcollection under the user document:
-        const notificationRef = doc(db, "users", userId, "notifications", crypto.randomUUID());
+        // Dynamically pulling target Firestore collection operations
+        const { collection, addDoc, serverTimestamp } = await import('firebase/firestore');
         
-        await updateDoc(notificationRef, {
-          title: "🔑 System Administration Update",
-          message: text.trim(),
-          createdAt: Timestamp.now(),
+        // Dropping matching structure straight into your active core system notification database
+        await addDoc(collection(db, "notifications"), {
+          toUserId: userId, // 👈 Routes strictly to this user's screen instance feed!
+          fromUserId: auth.currentUser?.uid || "SYSTEM",
+          fromUsername: "SYSTEM ALERT",
+          fromUserImg: "/bossnet-logo.png",
           type: "system_alert",
-          isRead: false
+          text: text.trim(),
+          isVerified: true,
+          read: false,
+          createdAt: serverTimestamp()
         });
-        
-        Swal.fire("Transmitted", "Notification pushed to client terminal successfully.", "success");
-      } catch (e) { 
-        // Fallback option: If your schema uses a root global collection matching against target userId:
-        try {
-          const globalNotificationRef = doc(db, "notifications", crypto.randomUUID());
-          const { setDoc } = await import('firebase/firestore'); // dynamic safety check
-          
-          // Try alternative root collection fallback format
-          const snap = await getDoc(doc(db, "users", userId)); 
-          if(snap.exists()) {
-            await updateDoc(doc(db, "users", userId), {
-              hasNewAlerts: true,
-              lastAlertText: text.trim()
-            });
-          }
-          Swal.fire("Transmitted", "Notification synchronized via identity fallback properties.", "success");
-        } catch(err) {
-          Swal.fire("Transmission Failed", "Could not write to database structures.", "error"); 
-        }
+
+        Swal.fire("Transmitted", "Notification synchronized live to user's screen inbox, boss!", "success");
+      } catch (e) {
+        console.error(e);
+        Swal.fire("Transmission Failed", "Could not write parameter to core notification collection.", "error");
       }
     }
   };
@@ -305,8 +306,12 @@ export default function AdminUserEdit() {
               <span className={`w-2.5 h-2.5 rounded-full ${user?.isOnline ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-red-500'}`} />
               <h1 className="text-sm font-bold leading-none">Command Deck</h1>
             </div>
-            <span className="text-[10px] text-zinc-500 mt-0.5 font-medium">
-              {user?.isOnline ? "User Connected Online" : `Last seen: ${formatLastSeen(user?.lastSeen)}`}
+            <span className="text-[10px] mt-0.5 font-medium">
+              {user?.isOnline ? (
+                <span className="text-green-400 font-bold tracking-wide uppercase text-[9px]">Online Now</span>
+              ) : (
+                <span className="text-zinc-500">Last seen: {formatLastSeen(user?.lastSeen)}</span>
+              )}
             </span>
           </div>
         </div>
