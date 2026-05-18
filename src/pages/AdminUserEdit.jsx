@@ -4,6 +4,7 @@ import { db, auth } from '../firebase';
 import { doc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { ArrowLeft, Shield, CheckCircle, UserX, UserCheck, Flame } from 'lucide-react';
 import Swal from 'sweetalert2';
+import VerifiedBadge from './VerifiedBadge'; // 👈 Added custom badge import here
 
 export default function AdminUserEdit() {
   const { userId } = useParams();
@@ -48,7 +49,7 @@ export default function AdminUserEdit() {
   const handleVerification = async () => {
     try {
       await updateDoc(doc(db, "users", userId), { isVerified: !user.isVerified });
-      Swal.fire("Updated", "Verification status toggled!", "success");
+      Swal.fire("Updated", "Verification status changed!", "success");
     } catch (e) { Swal.fire("Error", "Action failed", "error"); }
   };
 
@@ -265,7 +266,13 @@ export default function AdminUserEdit() {
           </div>
           
           <h2 className="text-xl font-bold tracking-tight">{user?.fullName || "No Identity Registered"}</h2>
-          <p className="text-sm text-zinc-500">@{user?.username || "no-handle"}</p>
+          
+          {/* Flex wrapper container to keep handle and live badge on the same line */}
+          <div className="flex items-center gap-1 mt-0.5">
+            <p className="text-sm text-zinc-500">@{user?.username || "no-handle"}</p>
+            <VerifiedBadge isVerified={user?.isVerified || false} />
+          </div>
+
           {user?.isAdmin && <span className="mt-2 text-[9px] font-black tracking-widest uppercase bg-blue-600 px-2 py-0.5 rounded text-white shadow-md">System Administrator</span>}
         </div>
 
@@ -405,4 +412,3 @@ export default function AdminUserEdit() {
     </div>
   );
 }
-
