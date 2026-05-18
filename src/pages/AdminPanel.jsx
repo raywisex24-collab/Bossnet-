@@ -117,79 +117,73 @@ export default function AdminPanel() {
 
         {/* CONTROLS GRID TAB */}
         {activeTab === 'dashboard' && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider px-1">Platform Control Deck</p>
             
-            {/* The Unified Grid Container with 1px fine dividers */}
-            <div className="grid grid-cols-3 gap-[1px] bg-white/10 border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+            {/* 3-Column fluid layout with distinct grid tracking gaps */}
+            <div className="grid grid-cols-3 gap-3 w-full pb-8">
               
-              {/* Box 1: Total Users (Stat Display) */}
-              <div className="bg-[#4a2311] p-4 min-h-[110px] flex flex-col justify-between items-center text-center transition-all duration-200 active:bg-[#2e150a] active:shadow-[inset_0_0_15px_rgba(16,185,129,0.6)] group">
-                <Users className="text-orange-400/60 group-active:text-emerald-400 transition-colors" size={20} />
-                <div className="mt-2">
-                  <p className="text-[20px] font-black text-white leading-none">{stats.usersCount}</p>
-                  <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-tight mt-1">Total Users</p>
-                </div>
+              {/* Box 1: Total Users */}
+              <div className="aspect-square bg-[#4e2415] border border-[#5f2e1b] rounded-xl flex flex-col justify-center items-center text-center p-2 transition-all duration-150 active:scale-95 active:border-emerald-500 active:shadow-[inset_0_0_20px_rgba(16,185,129,0.9)] group">
+                <Users className="text-zinc-400 group-active:text-emerald-400 transition-colors mb-2" size={24} />
+                <span className="text-2xl font-black text-white tracking-tight leading-none">{stats.usersCount}</span>
+                <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-tighter mt-1.5 break-words max-w-full">Total Users</span>
               </div>
 
-              {/* Box 2: Unread Alerts (Stat Display) */}
-              <div className="bg-[#4a2311] p-4 min-h-[110px] flex flex-col justify-between items-center text-center transition-all duration-200 active:bg-[#2e150a] active:shadow-[inset_0_0_15px_rgba(16,185,129,0.6)] group">
-                <AlertTriangle className={`${reports.length > 0 ? 'text-red-400' : 'text-zinc-500'} group-active:text-emerald-400 transition-colors`} size={20} />
-                <div className="mt-2">
-                  <p className={`text-[20px] font-black leading-none ${reports.length > 0 ? 'text-red-400' : 'text-white'}`}>{reports.length}</p>
-                  <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-tight mt-1">Unread Alerts</p>
-                </div>
+              {/* Box 2: Unread Alerts */}
+              <div className="aspect-square bg-[#4e2415] border border-[#5f2e1b] rounded-xl flex flex-col justify-center items-center text-center p-2 transition-all duration-150 active:scale-95 active:border-emerald-500 active:shadow-[inset_0_0_20px_rgba(16,185,129,0.9)] group">
+                <AlertTriangle className={`${reports.length > 0 ? 'text-red-400 animate-pulse' : 'text-zinc-400'} group-active:text-emerald-400 transition-colors mb-2`} size={24} />
+                <span className={`text-2xl font-black tracking-tight leading-none ${reports.length > 0 ? 'text-red-400' : 'text-white'}`}>{reports.length}</span>
+                <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-tighter mt-1.5 break-words max-w-full">Unread Alerts</span>
               </div>
 
-              {/* Box 3: Live Pulse (Action Button to Online Tab) */}
+              {/* Box 3: users online */}
               <div 
                 onClick={() => setActiveTab('online')}
-                className="bg-[#4a2311] p-4 min-h-[110px] flex flex-col justify-between items-center text-center cursor-pointer transition-all duration-200 hover:bg-[#5c2b15] active:bg-[#2e150a] active:shadow-[inset_0_0_15px_rgba(16,185,129,0.8)] group"
+                className="aspect-square bg-[#4e2415] border border-[#5f2e1b] rounded-xl flex flex-col justify-center items-center text-center p-2 cursor-pointer transition-all duration-150 hover:bg-[#5c2b15] active:scale-95 active:border-emerald-500 active:shadow-[inset_0_0_20px_rgba(16,185,129,0.9)] group"
               >
-                <Activity className="text-emerald-400 group-active:scale-110 transition-transform" size={20} />
-                <div className="mt-2">
-                  <p className="text-[20px] font-black text-emerald-400 leading-none">{onlineUsers.length}</p>
-                  <p className="text-[9px] text-zinc-300 font-bold uppercase tracking-tight mt-1">Live Pulse</p>
-                </div>
+                <Activity className="text-emerald-400 group-active:scale-110 transition-transform mb-2" size={24} />
+                <span className="text-2xl font-black text-emerald-400 tracking-tight leading-none">{onlineUsers.length}</span>
+                <span className="text-[9px] text-zinc-300 font-bold uppercase tracking-tighter mt-1.5 break-words max-w-full">users online</span>
               </div>
 
-              {/* Box 4: Users Directory (Action Button) */}
+              {/* Box 4: Users Directory */}
               <div 
                 onClick={() => navigate('/admin/users')}
-                className="bg-[#4a2311] p-4 min-h-[110px] flex flex-col justify-center items-center text-center cursor-pointer transition-all duration-200 hover:bg-[#5c2b15] active:bg-[#2e150a] active:shadow-[inset_0_0_15px_rgba(16,185,129,0.8)] group"
+                className="aspect-square bg-[#4e2415] border border-[#5f2e1b] rounded-xl flex flex-col justify-center items-center text-center p-2 cursor-pointer transition-all duration-150 hover:bg-[#5c2b15] active:scale-95 active:border-emerald-500 active:shadow-[inset_0_0_20px_rgba(16,185,129,0.9)] group"
               >
-                <Users className="text-zinc-300 group-active:text-emerald-400" size={22} />
-                <p className="text-[10px] text-white font-black uppercase tracking-wider mt-3">Users Main</p>
+                <Users className="text-zinc-300 group-active:text-emerald-400 transition-colors mb-2" size={26} />
+                <span className="text-[10px] text-white font-black uppercase tracking-tight mt-1">Users Main</span>
               </div>
 
-              {/* Box 5: Placeholder for future modules */}
-              <div className="bg-[#4a2311] p-4 min-h-[110px] flex flex-col justify-center items-center text-center opacity-40 select-none">
-                <div className="w-5 h-5 border border-dashed border-zinc-500 rounded-md"></div>
-                <p className="text-[9px] text-zinc-500 font-bold uppercase mt-3">Empty Slot</p>
+              {/* Box 5: Future Modules */}
+              <div className="aspect-square bg-[#2a140c] border border-white/5 rounded-xl flex flex-col justify-center items-center text-center p-2 opacity-25 select-none">
+                <div className="w-6 h-6 border-2 border-dashed border-zinc-600 rounded-lg"></div>
+                <span className="text-[9px] text-zinc-500 font-bold uppercase mt-2">Empty Slot</span>
               </div>
 
-              {/* Box 6: Placeholder for future modules */}
-              <div className="bg-[#4a2311] p-4 min-h-[110px] flex flex-col justify-center items-center text-center opacity-40 select-none">
-                <div className="w-5 h-5 border border-dashed border-zinc-500 rounded-md"></div>
-                <p className="text-[9px] text-zinc-500 font-bold uppercase mt-3">Empty Slot</p>
+              {/* Box 6: Future Modules */}
+              <div className="aspect-square bg-[#2a140c] border border-white/5 rounded-xl flex flex-col justify-center items-center text-center p-2 opacity-25 select-none">
+                <div className="w-6 h-6 border-2 border-dashed border-zinc-600 rounded-lg"></div>
+                <span className="text-[9px] text-zinc-500 font-bold uppercase mt-2">Empty Slot</span>
               </div>
 
-              {/* Box 7: Placeholder for future modules */}
-              <div className="bg-[#4a2311] p-4 min-h-[110px] flex flex-col justify-center items-center text-center opacity-40 select-none">
-                <div className="w-5 h-5 border border-dashed border-zinc-500 rounded-md"></div>
-                <p className="text-[9px] text-zinc-500 font-bold uppercase mt-3">Empty Slot</p>
+              {/* Box 7: Future Modules */}
+              <div className="aspect-square bg-[#2a140c] border border-white/5 rounded-xl flex flex-col justify-center items-center text-center p-2 opacity-25 select-none">
+                <div className="w-6 h-6 border-2 border-dashed border-zinc-600 rounded-lg"></div>
+                <span className="text-[9px] text-zinc-500 font-bold uppercase mt-2">Empty Slot</span>
               </div>
 
-              {/* Box 8: Placeholder for future modules */}
-              <div className="bg-[#4a2311] p-4 min-h-[110px] flex flex-col justify-center items-center text-center opacity-40 select-none">
-                <div className="w-5 h-5 border border-dashed border-zinc-500 rounded-md"></div>
-                <p className="text-[9px] text-zinc-500 font-bold uppercase mt-3">Empty Slot</p>
+              {/* Box 8: Future Modules */}
+              <div className="aspect-square bg-[#2a140c] border border-white/5 rounded-xl flex flex-col justify-center items-center text-center p-2 opacity-25 select-none">
+                <div className="w-6 h-6 border-2 border-dashed border-zinc-600 rounded-lg"></div>
+                <span className="text-[9px] text-zinc-500 font-bold uppercase mt-2">Empty Slot</span>
               </div>
 
-              {/* Box 9: Placeholder for future modules */}
-              <div className="bg-[#4a2311] p-4 min-h-[110px] flex flex-col justify-center items-center text-center opacity-40 select-none">
-                <div className="w-5 h-5 border border-dashed border-zinc-500 rounded-md"></div>
-                <p className="text-[9px] text-zinc-500 font-bold uppercase mt-3">Empty Slot</p>
+              {/* Box 9: Future Modules */}
+              <div className="aspect-square bg-[#2a140c] border border-white/5 rounded-xl flex flex-col justify-center items-center text-center p-2 opacity-25 select-none">
+                <div className="w-6 h-6 border-2 border-dashed border-zinc-600 rounded-lg"></div>
+                <span className="text-[9px] text-zinc-500 font-bold uppercase mt-2">Empty Slot</span>
               </div>
 
             </div>
