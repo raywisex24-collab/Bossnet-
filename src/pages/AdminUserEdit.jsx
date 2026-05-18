@@ -1,10 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db, auth } from '../firebase';
-import { doc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore';
 import { ArrowLeft, Shield, CheckCircle, UserX, UserCheck, Flame } from 'lucide-react';
 import Swal from 'sweetalert2';
 import VerifiedBadge from './VerifiedBadge'; // 👈 Added custom badge import here
+
+// Helper engine to cleanly format last seen timelines relative to now
+const formatLastSeen = (timestamp) => {
+  if (!timestamp) return "Never";
+  const date = timestamp instanceof Timestamp ? timestamp.toDate() : new Date(timestamp);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 6000);
+  
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${Math.floor(diffMins / 60)}h ago`;
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+};
 
 export default function AdminUserEdit() {
   const { userId } = useParams();
@@ -224,6 +239,56 @@ export default function AdminUserEdit() {
     }
   };
 
+  // 6. Direct Notification Dispatcher Engine
+  const dispatchDirectNotification = async () => {
+    const { value: text } = await Swal.fire({
+      title: 'Dispatch System Notification',
+      text: `Send a direct custom system broadcast message to @${user?.username || 'user'}:`,
+      input: 'textarea',
+      inputPlaceholder: 'Type notification body content here...',
+      showCancelButton: true,
+      confirmButtonText: 'Transmit Message',
+      confirmButtonColor: '#2563eb',
+      background: '#000',
+      color: '#fff'
+    });
+
+    if (text && text.trim()) {
+      try {
+        // If your schema nests notifications inside a subcollection under the user document:
+        const notificationRef = doc(db, "users", userId, "notifications", crypto.randomUUID());
+        
+        await updateDoc(notificationRef, {
+          title: "🔑 System Administration Update",
+          message: text.trim(),
+          createdAt: Timestamp.now(),
+          type: "system_alert",
+          isRead: false
+        });
+        
+        Swal.fire("Transmitted", "Notification pushed to client terminal successfully.", "success");
+      } catch (e) { 
+        // Fallback option: If your schema uses a root global collection matching against target userId:
+        try {
+          const globalNotificationRef = doc(db, "notifications", crypto.randomUUID());
+          const { setDoc } = await import('firebase/firestore'); // dynamic safety check
+          
+          // Try alternative root collection fallback format
+          const snap = await getDoc(doc(db, "users", userId)); 
+          if(snap.exists()) {
+            await updateDoc(doc(db, "users", userId), {
+              hasNewAlerts: true,
+              lastAlertText: text.trim()
+            });
+          }
+          Swal.fire("Transmitted", "Notification synchronized via identity fallback properties.", "success");
+        } catch(err) {
+          Swal.fire("Transmission Failed", "Could not write to database structures.", "error"); 
+        }
+      }
+    }
+  };
+
   if (loading) return <div className="min-h-screen !bg-black flex items-center justify-center"><div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>;
   if (!isAdmin) return null;
 
@@ -231,10 +296,21 @@ export default function AdminUserEdit() {
     <div className="min-h-screen !bg-black text-boss-text font-sans pb-24">
       {/* Top sticky navigation deck */}
       <div className="flex items-center justify-between p-4 border-b border-white/10 sticky top-0 !bg-black z-50">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <ArrowLeft onClick={() => navigate('/admin/users')} className="cursor-pointer text-zinc-400" />
-          <h1 className="text-lg font-bold">Account Command Deck</h1>
+          
+          {/* Real-time Dynamic Presence Signal Block */}
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <span className={`w-2.5 h-2.5 rounded-full ${user?.isOnline ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-red-500'}`} />
+              <h1 className="text-sm font-bold leading-none">Command Deck</h1>
+            </div>
+            <span className="text-[10px] text-zinc-500 mt-0.5 font-medium">
+              {user?.isOnline ? "User Connected Online" : `Last seen: ${formatLastSeen(user?.lastSeen)}`}
+            </span>
+          </div>
         </div>
+        
         <button 
           onClick={() => navigate(`/profile/${userId}`)}
           className="text-xs bg-white/10 border border-white/10 px-4 py-2 rounded-xl text-zinc-300 font-bold hover:bg-white/20 transition-all active:scale-95"
@@ -304,7 +380,7 @@ export default function AdminUserEdit() {
 
           {/* Bio Control Component Grid */}
           <div className="space-y-1.5">
-            <label className="text-xs text-zinc-400 font-medium">User Profile Bio Statement</label>
+	            <label className="text-xs text-zinc-400 font-medium">User Profile Bio Statement</label>
             {isEditingBio ? (
               <div className="flex flex-col gap-2">
                 <textarea 
@@ -364,6 +440,18 @@ export default function AdminUserEdit() {
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
               </svg>
               <span className="text-[11px] leading-tight">Audit / Change Pass</span>
+            </button>
+
+            {/* Direct Push Message Console Switch */}
+            <button 
+              onClick={dispatchDirectNotification}
+              className="p-4 rounded-xl border bg-white/5 border-white/5 text-purple-400 border-purple-500/20 hover:border-purple-500/50 flex flex-col items-center justify-center gap-2 font-bold text-center transition-all col-span-2 mt-1"
+            >
+              <svg viewBox="0 0 24 24" className="w-4 h-4 stroke-current fill-none stroke-[2] animate-pulse">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+              </svg>
+              <span className="text-[11px] leading-tight text-zinc-300">Transmit Custom Push Notification Message</span>
             </button>
           </div>
         </div>
