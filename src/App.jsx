@@ -60,37 +60,42 @@ import IncomingCall from './pages/IncomingCall';
 const LayoutWrapper = ({ children }) => {
   const location = useLocation();
 
-  // 🔑 CORE GLOBAL PRESENCE ENGINE
+  // 🔑 REINFORCED BULLETPROOF PRESENCE ENGINE
   useEffect(() => {
-    // 1. Establish an authentication monitoring loop
+    // Define entry splash/auth paths where status tracking isn't needed
+    const isAuthRoute = ['/', '/pre-splash', '/splash', '/login', '/signup'].includes(location.pathname);
+
     const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
-      // Security Check: Ensure the user object exists and is logged in
-      if (currentUser?.uid) {
+      if (currentUser?.uid && !isAuthRoute) {
         const userRef = doc(db, "users", currentUser.uid);
 
-        // Update database entry instantly to 'online' across current route instance
-        updateDoc(userRef, { 
-          status: "online" 
-        }).catch(e => console.error("Presence online sync crashed:", e));
+        // A tiny 100ms delay ensures any unmounting screen actions finish firing FIRST,
+        // allowing this global wrapper to safely force the ultimate 'online' flag status.
+        const forceOnline = setTimeout(() => {
+          updateDoc(userRef, { 
+            status: "online" 
+          }).catch(err => console.error("Global online update error:", err));
+        }, 100);
 
-        // 2. Disconnect Handler: Runs if they kill the browser or close the tab
+        // Disconnect Handler: Runs if they close the browser session or drop connection completely
         const handleDisconnect = () => {
           updateDoc(userRef, { 
             status: "offline", 
             lastSeen: serverTimestamp() 
-          }).catch(e => console.error("Presence offline sync crashed:", e));
+          }).catch(err => console.error("Disconnect presence sync failed:", err));
         };
 
         window.addEventListener("beforeunload", handleDisconnect);
 
         return () => {
+          clearTimeout(forceOnline);
           window.removeEventListener("beforeunload", handleDisconnect);
         };
       }
     });
 
     return () => unsubscribeAuth();
-  }, [location.pathname]); // 👈 Fires automatically on any screen transition pass!
+  }, [location.pathname]);
 
   // ✅ Check if the current page is a splash screen
   const isSplashPage = ['/', '/pre-splash', '/splash'].includes(location.pathname);

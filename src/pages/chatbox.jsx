@@ -46,22 +46,6 @@ export default function Chatbox() {
   }, []);
 
   useEffect(() => {
-    const user = auth.currentUser;
-    if (!user) return;
-    const userRef = doc(db, "users", user.uid);
-
-    const handleVisibilityChange = () => {
-      const state = document.visibilityState === 'visible' ? 'online' : 'offline';
-      updateDoc(userRef, { status: state, lastSeen: serverTimestamp() }).catch(e => console.error(e));
-    };
-
-    window.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      window.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, []);
-
-  useEffect(() => {
     const fetchUser = async () => {
       const user = auth.currentUser;
       if (user) {
