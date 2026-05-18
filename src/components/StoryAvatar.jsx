@@ -85,4 +85,3 @@ export default function StoryAvatar({ userId, profilePic, size = "40px" }) {
     </div>
   );
 }
-

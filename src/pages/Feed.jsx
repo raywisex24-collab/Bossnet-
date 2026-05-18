@@ -244,7 +244,11 @@ export default function Feed() {
       <div className="ml-8 mt-2 space-y-3 border-l-2 border-white/5 pl-4">
         {replies.map(r => (
           <div key={r.id} className="flex gap-2 items-start">
-            <img src={r.userImg} onClick={() => navigate(`/profile/${r.userId}`)} className="w-6 h-6 rounded-full object-cover cursor-pointer" />
+            <img 
+              src={globalUsersMap[r.userId]?.profilePic || r.userImg} 
+              onClick={() => navigate(`/profile/${r.userId}`)} 
+              className="w-6 h-6 rounded-full object-cover cursor-pointer" 
+            />
             <div className="flex-1">
               <div className="bg-white/5 p-2 rounded-xl text-xs">
                 <span onClick={() => navigate(`/profile/${r.userId}`)} className="font-bold text-blue-400 cursor-pointer">@{r.username} </span>
@@ -343,7 +347,9 @@ export default function Feed() {
                 <div className="p-[2px] bg-boss-bg rounded-full">
                   <StoryAvatar 
                     userId={auth.currentUser?.uid} 
-                    profilePic={userData?.profilePic} 
+                    /* Prioritizes your live global cache map, falls back to local user data, 
+                       and uses your active Auth photoURL string as a safe final baseline */
+                    profilePic={globalUsersMap[auth.currentUser?.uid]?.profilePic || userData?.profilePic || auth.currentUser?.photoURL} 
                     size="62px" 
                   />
                 </div>
@@ -376,7 +382,8 @@ export default function Feed() {
                 <div className="p-[2px] bg-boss-bg rounded-full">
                   <StoryAvatar 
                     userId={story.userId} 
-                    profilePic={story.profilePic} 
+                    /* Connects your global user map listener directly to the dashboard tray circles */
+                    profilePic={globalUsersMap[story.userId]?.profilePic || story.profilePic} 
                     size="62px" 
                   />
                 </div>
@@ -412,7 +419,9 @@ export default function Feed() {
 <div className="flex items-center gap-3">
   <StoryAvatar 
     userId={post.userId} 
-    profilePic={post.userImg} 
+    /* Reads the live profile image straight from the active database map. 
+       If you or any user updates their image, it syncs here instantly! */
+    profilePic={globalUsersMap[post.userId]?.profilePic || post.userImg} 
     size="40px" 
   />
   <div>
@@ -615,7 +624,7 @@ export default function Feed() {
                   <div key={c.id} className="mb-6">
                     <div className="flex gap-3 group">
                       <img 
-                        src={c.userImg} 
+                        src={globalUsersMap[c.userId]?.profilePic || c.userImg} 
                         onClick={() => navigate(`/profile/${c.userId}`)}
                         className="w-9 h-9 rounded-full object-cover cursor-pointer border-2 border-transparent active:border-blue-500" 
                       />
