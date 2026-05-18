@@ -95,7 +95,7 @@ export default function AdminPanel() {
         <ArrowLeft onClick={() => navigate('/feed')} className="cursor-pointer text-zinc-400 hover:text-white" />
         <div className="flex items-center gap-2">
           <Shield className="text-blue-500" size={22} />
-          <h1 className="text-xl font-bold tracking-tight">SYSTEM CONSOLE</h1>
+          <h1 className="text-xl font-bold tracking-tight">ADMIN PANEL</h1>
         </div>
       </div>
 
@@ -103,11 +103,11 @@ export default function AdminPanel() {
         {/* Metric Quick Stats Banner */}
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-white/[0.02] border border-white/5 p-4 rounded-2xl flex items-center justify-between">
-            <div><p className="text-xs text-zinc-500 font-bold uppercase">Total Base</p><p className="text-2xl font-black mt-1">{stats.usersCount}</p></div>
+            <div><p className="text-xs text-zinc-500 font-bold uppercase">Total Number Of Users</p><p className="text-2xl font-black mt-1">{stats.usersCount}</p></div>
             <Users className="text-blue-500/40" size={28} />
           </div>
           <div className="bg-white/[0.02] border border-white/5 p-4 rounded-2xl flex items-center justify-between">
-            <div><p className="text-xs text-zinc-500 font-bold uppercase">Open Alerts</p><p className="text-2xl font-black mt-1 text-red-500">{reports.length}</p></div>
+            <div><p className="text-xs text-zinc-500 font-bold uppercase">Unread Alerts</p><p className="text-2xl font-black mt-1 text-red-500">{reports.length}</p></div>
             <AlertTriangle className="text-red-500/40" size={28} />
           </div>
         </div>
@@ -129,7 +129,7 @@ export default function AdminPanel() {
             >
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-blue-600/20 text-blue-400 rounded-xl group-hover:scale-110 transition-transform"><Users size={24} /></div>
-                <div><h3 className="font-bold text-base">Account Directory</h3><p className="text-xs text-zinc-400 mt-0.5">Manage credentials, bans, values, and verification</p></div>
+                <div><h3 className="font-bold text-base">Users Directory</h3><p className="text-xs text-zinc-400 mt-0.5">Manage users credentials</p></div>
               </div>
             </div>
           </div>

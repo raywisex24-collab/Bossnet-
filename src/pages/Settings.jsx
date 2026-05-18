@@ -102,7 +102,7 @@ const Settings = () => {
         },
 { 
   icon: <Languages size={22} strokeWidth={2.5}/>, 
-  label: "t('language')",
+  label: "language",
   onClick: () => navigate('/settings/language')
 },
         { icon: <Zap size={22} strokeWidth={2.5}/>, label: "Data saver" },
@@ -157,7 +157,7 @@ const Settings = () => {
         <button onClick={() => navigate(-1)} className="mr-6 active:scale-90 transition-transform">
           <ArrowLeft size={28} strokeWidth={3} />
         </button>
-        <h1 className="text-2xl font-black tracking-tighter">privacy</h1>
+        <h1 className="text-2xl font-black tracking-tighter">privacy settings</h1>
       </div>
 
       <div className="mt-4">
@@ -194,7 +194,7 @@ const Settings = () => {
         ))}
         
         <div className="p-10 text-center">
-            <p className="text-zinc-600 text-[14px] font-black tracking-[4px] uppercase opacity-50">Network Portal</p>
+            <p className="text-zinc-600 text-[14px] font-black tracking-[4px] uppercase opacity-50">Bossnet</p>
         </div>
       </div>
     </div>

@@ -295,7 +295,7 @@ export default function PersonalProfile() {
                 className="flex items-center gap-4 p-4 mb-2 bg-blue-600/10 border border-blue-500/20 text-blue-400 hover:bg-blue-600/20 rounded-xl cursor-pointer transition-colors"
               >
                 <Shield size={22} className="text-blue-400" />
-                <span className="font-bold text-lg">Admin Console</span>
+                <span className="font-bold text-lg">Admin Panel</span>
               </div>
             )}
 

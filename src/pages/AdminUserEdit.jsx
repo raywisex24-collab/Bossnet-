@@ -77,7 +77,7 @@ export default function AdminUserEdit() {
     <div className="min-h-screen bg-boss-bg text-boss-text font-sans pb-12">
       <div className="flex items-center gap-4 p-4 border-b border-white/10 sticky top-0 bg-boss-bg z-50">
         <ArrowLeft onClick={() => navigate('/admin/users')} className="cursor-pointer text-zinc-400" />
-        <h1 className="text-lg font-bold">Manage Account</h1>
+        <h1 className="text-lg font-bold">Account Properties</h1>
       </div>
 
       <div className="p-5 max-w-lg mx-auto space-y-6">

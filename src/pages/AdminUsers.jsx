@@ -50,7 +50,7 @@ export default function AdminUsers() {
     <div className="min-h-screen !bg-black text-boss-text font-sans pb-12">
       <div className="flex items-center gap-4 p-4 border-b border-white/10 sticky top-0 !bg-black z-50">
         <ArrowLeft onClick={() => navigate('/admin')} className="cursor-pointer text-zinc-400" />
-        <h1 className="text-lg font-bold">Account Directory</h1>
+        <h1 className="text-lg font-bold">USERS DIRECTORY</h1>
       </div>
 
       <div className="p-4 max-w-lg mx-auto space-y-4">

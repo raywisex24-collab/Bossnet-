@@ -586,7 +586,7 @@ const Reels = () => {
         <div className="h-screen flex items-center justify-center">
           <div className="flex flex-col items-center gap-4">
             <div className="w-12 h-12 border-4 border-[#1877F2] border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-zinc-500 uppercase tracking-[4px] text-[10px] font-black">SYNCING REELS...</p>
+            <p className="text-zinc-500 uppercase tracking-[4px] text-[10px] font-black">LOADING REELS...</p>
           </div>
         </div>
       )}
