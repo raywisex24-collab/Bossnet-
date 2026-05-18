@@ -7,7 +7,7 @@ import VerifiedBadge from './VerifiedBadge';
 import StoryAvatar from '../components/StoryAvatar'; // 👈 Added to manage profile frames
 import { submitGlobalReport } from '../reportSystem';
 
-const ReelItem = ({ post }) => {
+const ReelItem = ({ post, globalUsersMap }) => {
   const videoRefs = useRef([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -363,7 +363,7 @@ const ReelItem = ({ post }) => {
         <div className="mb-2">
           <StoryAvatar 
             userId={post.userId} 
-            profilePic={post.userId === user?.uid ? (auth.currentUser?.photoURL || post.userProfilePic) : post.userProfilePic} 
+            profilePic={globalUsersMap[post.userId]?.profilePic || post.userProfilePic || auth.currentUser?.photoURL} 
             size="46px" 
           />
         </div>
@@ -394,7 +394,7 @@ const ReelItem = ({ post }) => {
           onClick={() => navigate(`/profile/${post.userId}`)}
         >
            <img 
-             src={post.userId === user?.uid ? (auth.currentUser?.photoURL || post.userProfilePic) : post.userProfilePic} 
+             src={globalUsersMap[post.userId]?.profilePic || post.userProfilePic || auth.currentUser?.photoURL} 
              className="w-full h-full rounded-full object-cover" 
              alt="music disc avatar" 
            />
@@ -410,11 +410,11 @@ const ReelItem = ({ post }) => {
         )}
         <div className="flex items-center gap-2 mb-2">
           <div className="flex items-center gap-1">
-            <h1 className="text-xl font-bold lowercase tracking-tight">
-              {post.username || post.authorName || "..."}
+            <h1 className="text-xl font-bold lowercase tracking-tight cursor-pointer" onClick={() => navigate(`/profile/${post.userId}`)}>
+              {globalUsersMap[post.userId]?.username || post.username || post.authorName || "..."}
             </h1>
             <VerifiedBadge 
-              isVerified={post.userId === user?.uid ? (auth.currentUser && post.isVerified) : post.isVerified} 
+              isVerified={globalUsersMap[post.userId]?.isVerified || false} 
             />
           </div>
           {user && user.uid !== post.userId && (
@@ -458,14 +458,16 @@ const ReelItem = ({ post }) => {
         {/* Dynamic StoryAvatar Implementation */}
         <StoryAvatar 
           userId={com.userId} 
-          profilePic={com.userImg} 
+          profilePic={globalUsersMap[com.userId]?.profilePic || com.userImg} 
           size="36px" 
         />
         
         <div className="flex-1">
           <div className="flex items-center gap-1.5">
-            <p className="text-boss-text text-[13px] font-bold">@{com.username}</p>
-            <VerifiedBadge isVerified={com.isVerified} />
+            <p className="text-boss-text text-[13px] font-bold cursor-pointer" onClick={() => navigate(`/profile/${com.userId}`)}>
+              @{globalUsersMap[com.userId]?.username || com.username}
+            </p>
+            <VerifiedBadge isVerified={globalUsersMap[com.userId]?.isVerified || false} />
             <span className="text-[10px] text-zinc-500">• {com.likes || 0} likes</span>
           </div>
           <p className="text-zinc-200 text-[14px] mt-1 pr-4 leading-relaxed">{com.text}</p>
@@ -554,13 +556,27 @@ const ReelItem = ({ post }) => {
 
 const Reels = () => {
   const [posts, setPosts] = useState([]);
+  const [globalUsersMap, setGlobalUsersMap] = useState({}); // 👈 Tracks active credentials globally
 
   useEffect(() => {
     const q = query(collection(db, "videos"), orderBy("createdAt", "desc"));
     const unsub = onSnapshot(q, (snap) => {
       setPosts(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
     });
-    return () => unsub();
+
+    // Real-time loop syncing active profile updates across the database
+    const unsubGlobalUsers = onSnapshot(collection(db, "users"), (snapshot) => {
+      const userMap = {};
+      snapshot.docs.forEach(doc => {
+        userMap[doc.id] = doc.data();
+      });
+      setGlobalUsersMap(userMap);
+    });
+
+    return () => {
+      unsub();
+      unsubGlobalUsers();
+    };
   }, []);
 
   return (
@@ -581,7 +597,7 @@ const Reels = () => {
       `}</style>
       
       {posts.length > 0 ? (
-        posts.map((post) => <ReelItem key={post.id} post={post} />)
+        posts.map((post) => <ReelItem key={post.id} post={post} globalUsersMap={globalUsersMap} />)
       ) : (
         <div className="h-screen flex items-center justify-center">
           <div className="flex flex-col items-center gap-4">

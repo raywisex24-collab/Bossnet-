@@ -46,6 +46,44 @@ export default function AdminUserEdit() {
   const [isEditingBio, setIsEditingBio] = useState(false);
   const [bioInput, setBioInput] = useState("");
 
+  // Username live validation states
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [usernameAvailable, setUsernameAvailable] = useState(true);
+
+  // Live validator for username uniqueness
+  useEffect(() => {
+    if (!usernameInput.trim()) {
+      setUsernameAvailable(false);
+      return;
+    }
+
+    // If it's the user's current username, it's automatically valid/available
+    if (usernameInput.trim().toLowerCase() === user?.username) {
+      setUsernameAvailable(true);
+      return;
+    }
+
+    const delayDebounceFn = setTimeout(async () => {
+      setIsCheckingUsername(true);
+      try {
+        const { collection, query, where, getDocs } = await import('firebase/firestore');
+        const targetHandle = usernameInput.trim().toLowerCase();
+        
+        const q = query(collection(db, "users"), where("username", "==", targetHandle));
+        const querySnapshot = await getDocs(q);
+        
+        // If snapshot is empty, username is available!
+        setUsernameAvailable(querySnapshot.empty);
+      } catch (err) {
+        console.error("Username validation crash:", err);
+      } finally {
+        setIsCheckingUsername(false);
+      }
+    }, 400); // 400ms debounce to prevent spamming Firestore reads on every single keystroke
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [usernameInput, user?.username]);
+
   useEffect(() => {
     const checkAdmin = async () => {
       const current = auth.currentUser;
@@ -125,6 +163,10 @@ export default function AdminUserEdit() {
   // 2. Identity Management Sync System
   const saveUsername = async () => {
     if (!usernameInput.trim()) return;
+    if (!usernameAvailable && usernameInput.trim().toLowerCase() !== user?.username) {
+      Swal.fire("Error", "This username is already taken, boss!", "error");
+      return;
+    }
     try {
       await updateDoc(doc(db, "users", userId), { username: usernameInput.trim().toLowerCase() });
       setIsEditingUsername(false);
@@ -365,20 +407,79 @@ export default function AdminUserEdit() {
           <div className="space-y-1.5">
             <label className="text-xs text-zinc-400 font-medium">System Handle Name (@)</label>
             {isEditingUsername ? (
-              <div className="flex gap-2">
-                <input 
-                  type="text" 
-                  value={usernameInput} 
-                  onChange={(e) => setUsernameInput(e.target.value)}
-                  className="flex-1 bg-black border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none"
-                />
-                <button onClick={saveUsername} className="bg-green-600 px-3 py-1 text-xs rounded-xl font-bold">Save</button>
-                <button onClick={() => setIsEditingUsername(false)} className="bg-white/10 px-3 py-1 text-xs rounded-xl text-zinc-400">Cancel</button>
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2 items-center relative">
+                  <div className="relative flex-1">
+                    <input 
+                      type="text" 
+                      value={usernameInput} 
+                      // Forces letters to small letters automatically as they type
+                      onChange={(e) => setUsernameInput(e.target.value.toLowerCase())}
+                      className={`w-full bg-black rounded-xl pl-3 pr-10 py-2.5 text-xs text-white outline-none transition-colors border ${
+                        usernameInput.trim() === ""
+                          ? "border-white/10"
+                          : usernameAvailable 
+                            ? "border-green-500 focus:border-green-500 shadow-[0_0_8px_rgba(34,197,94,0.1)]" 
+                            : "border-red-500 focus:border-red-500 shadow-[0_0_8px_rgba(239,68,68,0.1)]"
+                      }`}
+                      placeholder="Type username..."
+                    />
+                    
+                    {/* Visual Status Validation Checkmark Overlays */}
+                    {usernameInput.trim() !== "" && !isCheckingUsername && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                        {usernameAvailable ? (
+                          <CheckCircle size={16} className="text-green-500 fill-green-500/10 animate-in fade-in zoom-in-75 duration-150" />
+                        ) : (
+                          <svg viewBox="0 0 24 24" className="w-4 h-4 fill-none stroke-red-500 stroke-[2.5] animate-in fade-in zoom-in-75 duration-150">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                          </svg>
+                        )}
+                      </div>
+                    )}
+
+                    {isCheckingUsername && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <div className="w-3.5 h-3.5 border-2 border-zinc-500 border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                    )}
+                  </div>
+
+                  <button 
+                    onClick={saveUsername} 
+                    disabled={!usernameAvailable && usernameInput.trim().toLowerCase() !== user?.username}
+                    className={`px-4 py-2.5 text-xs rounded-xl font-bold transition-all ${
+                      usernameAvailable 
+                        ? "bg-green-600 hover:bg-green-700 text-white cursor-pointer active:scale-95" 
+                        : "bg-zinc-800 text-zinc-500 cursor-not-allowed"
+                    }`}
+                  >
+                    Save
+                  </button>
+                  <button 
+                    onClick={() => { setIsEditingUsername(false); setUsernameInput(user?.username || ""); }} 
+                    className="bg-white/5 border border-white/5 hover:bg-white/10 px-3 py-2.5 text-xs rounded-xl text-zinc-400 font-medium active:scale-95 transition-all"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                
+                {/* Optional helper feedback line */}
+                {usernameInput.trim() !== "" && !usernameAvailable && !isCheckingUsername && (
+                  <p className="text-[10px] text-red-500 font-semibold px-1">This handle belongs to another user instance, boss.</p>
+                )}
               </div>
             ) : (
               <div className="flex justify-between items-center p-3 bg-black rounded-xl border border-white/5">
-                <span className="text-sm text-zinc-300">@{user?.username}</span>
-                <button onClick={() => { setUsernameInput(user?.username || ""); setIsEditingUsername(true); }} className="text-xs text-blue-400 font-bold">Change</button>
+                <span className="text-sm text-zinc-300 font-medium">@{user?.username}</span>
+                <button 
+                  onClick={() => { setUsernameInput(user?.username || ""); setIsEditingUsername(true); }} 
+                  className="text-xs text-blue-400 font-extrabold uppercase tracking-wider hover:text-blue-300 transition-colors"
+                >
+                  Change
+                </button>
               </div>
             )}
           </div>
