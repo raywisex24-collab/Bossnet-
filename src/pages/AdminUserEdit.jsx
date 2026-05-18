@@ -303,12 +303,12 @@ export default function AdminUserEdit() {
           {/* Real-time Dynamic Presence Signal Block */}
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <span className={`w-2.5 h-2.5 rounded-full ${user?.isOnline ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-red-500'}`} />
+              <span className={`w-2 h-2 rounded-full ${user?.status === 'online' ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-red-500'}`} />
               <h1 className="text-sm font-bold leading-none">Command Deck</h1>
             </div>
-            <span className="text-[10px] mt-0.5 font-medium">
-              {user?.isOnline ? (
-                <span className="text-green-400 font-bold tracking-wide uppercase text-[9px]">Online Now</span>
+            <span className="text-[11px] mt-0.5 font-medium">
+              {user?.status === 'online' ? (
+                <span className="text-green-500 font-semibold lowercase first-letter:uppercase">Online</span>
               ) : (
                 <span className="text-zinc-500">Last seen: {formatLastSeen(user?.lastSeen)}</span>
               )}

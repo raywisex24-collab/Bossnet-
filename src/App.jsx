@@ -2,7 +2,9 @@ import './i18n';
 import { Analytics } from '@vercel/analytics/react';
 import React, { useEffect } from 'react'; 
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { auth } from './firebase';
+import { auth, db } from './firebase'; // 👈 Added database reference
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore'; // 👈 Added firestore tracking methods
+import { onAuthStateChanged } from 'firebase/auth'; // 👈 Added auth tracking mechanics
 import Swal from 'sweetalert2'; 
 
 // ✅ Global Notification Provider
@@ -57,6 +59,38 @@ import IncomingCall from './pages/IncomingCall';
 // The Layout Wrapper manages UI visibility
 const LayoutWrapper = ({ children }) => {
   const location = useLocation();
+
+  // 🔑 CORE GLOBAL PRESENCE ENGINE
+  useEffect(() => {
+    // 1. Establish an authentication monitoring loop
+    const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
+      // Security Check: Ensure the user object exists and is logged in
+      if (currentUser?.uid) {
+        const userRef = doc(db, "users", currentUser.uid);
+
+        // Update database entry instantly to 'online' across current route instance
+        updateDoc(userRef, { 
+          status: "online" 
+        }).catch(e => console.error("Presence online sync crashed:", e));
+
+        // 2. Disconnect Handler: Runs if they kill the browser or close the tab
+        const handleDisconnect = () => {
+          updateDoc(userRef, { 
+            status: "offline", 
+            lastSeen: serverTimestamp() 
+          }).catch(e => console.error("Presence offline sync crashed:", e));
+        };
+
+        window.addEventListener("beforeunload", handleDisconnect);
+
+        return () => {
+          window.removeEventListener("beforeunload", handleDisconnect);
+        };
+      }
+    });
+
+    return () => unsubscribeAuth();
+  }, [location.pathname]); // 👈 Fires automatically on any screen transition pass!
 
   // ✅ Check if the current page is a splash screen
   const isSplashPage = ['/', '/pre-splash', '/splash'].includes(location.pathname);

@@ -49,18 +49,14 @@ export default function Chatbox() {
     const user = auth.currentUser;
     if (!user) return;
     const userRef = doc(db, "users", user.uid);
-    const updateStatus = (status) => {
-      updateDoc(userRef, { status: status, lastSeen: serverTimestamp() }).catch(e => console.error(e));
-    };
 
-    updateStatus('online');
     const handleVisibilityChange = () => {
-      updateStatus(document.visibilityState === 'visible' ? 'online' : 'offline');
+      const state = document.visibilityState === 'visible' ? 'online' : 'offline';
+      updateDoc(userRef, { status: state, lastSeen: serverTimestamp() }).catch(e => console.error(e));
     };
 
     window.addEventListener('visibilitychange', handleVisibilityChange);
     return () => {
-      updateStatus('offline');
       window.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
