@@ -13,6 +13,12 @@ export default function AdminUserEdit() {
   const [user, setUser] = useState(null);
   const [inflationInput, setInflationInput] = useState("");
 
+  // Administrative Workspace Edit Buffers
+  const [isEditingUsername, setIsEditingUsername] = useState(false);
+  const [usernameInput, setUsernameInput] = useState("");
+  const [isEditingBio, setIsEditingBio] = useState(false);
+  const [bioInput, setBioInput] = useState("");
+
   useEffect(() => {
     const checkAdmin = async () => {
       const current = auth.currentUser;
@@ -70,43 +76,287 @@ export default function AdminUserEdit() {
     } catch (e) { Swal.fire("Error", "Save failed", "error"); }
   };
 
-  if (loading) return <div className="min-h-screen bg-boss-bg flex items-center justify-center"><div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>;
+  // 1. Administrative Promotion Engine
+  const handleAdminToggle = async () => {
+    const nextStatus = !user?.isAdmin;
+    const conf = await Swal.fire({
+      title: 'Modify Credentials?',
+      text: `Are you sure you want to ${nextStatus ? "PROMOTE this user to System Admin" : "DEMOTE this user back to standard rank"}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      background: '#000',
+      color: '#fff'
+    });
+    if (conf.isConfirmed) {
+      try {
+        await updateDoc(doc(db, "users", userId), { isAdmin: nextStatus });
+        Swal.fire("Success", `User rank mutated successfully.`, "success");
+      } catch (e) { Swal.fire("Error", "Rank update failed", "error"); }
+    }
+  };
+
+  // 2. Identity Management Sync System
+  const saveUsername = async () => {
+    if (!usernameInput.trim()) return;
+    try {
+      await updateDoc(doc(db, "users", userId), { username: usernameInput.trim().toLowerCase() });
+      setIsEditingUsername(false);
+      Swal.fire("Saved", "Username updated across matrix.", "success");
+    } catch (e) { Swal.fire("Error", "Update failed", "error"); }
+  };
+
+  const saveBio = async () => {
+    try {
+      await updateDoc(doc(db, "users", userId), { bio: bioInput.trim() });
+      setIsEditingBio(false);
+      Swal.fire("Saved", "Bio layout updated.", "success");
+    } catch (e) { Swal.fire("Error", "Update failed", "error"); }
+  };
+
+  // 3. Password Audit and Overwrite Handler
+  const handlePasswordReset = async () => {
+    const currentPassword = user?.password || "No raw string recorded in database";
+    
+    const { value: newPassword } = await Swal.fire({
+      title: 'Authentication Management',
+      html: `
+        <div class="text-left text-xs text-zinc-400 space-y-2">
+          <p><span class="font-bold text-red-400">Current Saved Password:</span> <code class="bg-white/10 px-1.5 py-0.5 rounded text-white text-sm">${currentPassword}</code></p>
+          <p class="mt-4">Type a completely new structural password below to force-update their profile record entry:</p>
+        </div>
+      `,
+      input: 'text',
+      inputPlaceholder: 'Enter brand new password...',
+      showCancelButton: true,
+      background: '#000',
+      color: '#fff',
+      confirmButtonColor: '#2563eb'
+    });
+
+    if (newPassword && newPassword.trim()) {
+      try {
+        await updateDoc(doc(db, "users", userId), { password: newPassword.trim() });
+        Swal.fire("Success", "Password credential records rewritten.", "success");
+      } catch (e) { Swal.fire("Error", "Failed to update auth parameter", "error"); }
+    }
+  };
+
+  // 4. Avatar Asset Orchestration Portal
+  const triggerAvatarManagementOptions = async () => {
+    const { value: action } = await Swal.fire({
+      title: 'Profile Picture Desk',
+      text: 'Choose an administrative asset path mutation:',
+      icon: 'info',
+      showCancelButton: true,
+      showDenyButton: true,
+      confirmButtonText: 'Inject Link URL',
+      denyButtonText: '🗑️ Wipe Avatar',
+      cancelButtonText: 'Local Upload',
+      background: '#000',
+      color: '#fff',
+      confirmButtonColor: '#2563eb',
+      denyButtonColor: '#dc2626'
+    });
+
+    // Option A: Inject via Absolute Web URL address
+    if (action === true) {
+      const { value: url } = await Swal.fire({
+        title: 'Input Image Address',
+        input: 'url',
+        inputPlaceholder: 'https://example.com/avatar.jpg',
+        background: '#000',
+        color: '#fff'
+      });
+      if (url) {
+        await updateDoc(doc(db, "users", userId), { profilePic: url });
+        Swal.fire("Success", "External asset mapped.", "success");
+      }
+    } 
+    // Option B: Wipe profile image completely (set to empty)
+    else if (Swal.clickDeny()) {
+      await updateDoc(doc(db, "users", userId), { profilePic: "" });
+      Swal.fire("Wiped", "Asset cleared. System vector avatar active.", "success");
+    } 
+    // Option C: Local device file pick channel
+    else {
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = 'image/*';
+      fileInput.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        // Convert to inline Base64 storage payload string safely
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          await updateDoc(doc(db, "users", userId), { profilePic: reader.result });
+          Swal.fire("Uploaded", "Local asset mapped to file store.", "success");
+        };
+        reader.readAsDataURL(file);
+      };
+      fileInput.click();
+    }
+  };
+
+  // 5. Hard Wipe Destruction Protocol
+  const executeCatastrophicPurge = async () => {
+    const confirmationWord = "DELETE";
+    const { value: typedCheck } = await Swal.fire({
+      title: 'CRITICAL PURGE ALERT',
+      text: `This completely wipes this account and cannot be undone. Type "${confirmationWord}" to execute permanent deletion from database registry:`,
+      input: 'text',
+      icon: 'error',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      background: '#000',
+      color: '#fff'
+    });
+
+    if (typedCheck === confirmationWord) {
+      Swal.fire({ title: 'Executing Obliteration...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      try {
+        // Remove document from the users collection
+        await deleteDoc(doc(db, "users", userId));
+        Swal.fire("Obliterated", "Profile records wiped completely.", "success");
+        navigate('/admin/users');
+      } catch (e) { Swal.fire("Error", "Purge task crashed.", "error"); }
+    }
+  };
+
+  if (loading) return <div className="min-h-screen !bg-black flex items-center justify-center"><div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div></div>;
   if (!isAdmin) return null;
 
   return (
-    <div className="min-h-screen bg-boss-bg text-boss-text font-sans pb-12">
-      <div className="flex items-center gap-4 p-4 border-b border-white/10 sticky top-0 bg-boss-bg z-50">
-        <ArrowLeft onClick={() => navigate('/admin/users')} className="cursor-pointer text-zinc-400" />
-        <h1 className="text-lg font-bold">Account Properties</h1>
+    <div className="min-h-screen !bg-black text-boss-text font-sans pb-24">
+      {/* Top sticky navigation deck */}
+      <div className="flex items-center justify-between p-4 border-b border-white/10 sticky top-0 !bg-black z-50">
+        <div className="flex items-center gap-4">
+          <ArrowLeft onClick={() => navigate('/admin/users')} className="cursor-pointer text-zinc-400" />
+          <h1 className="text-lg font-bold">Account Command Deck</h1>
+        </div>
+        <button 
+          onClick={() => navigate(`/profile/${userId}`)}
+          className="text-xs bg-white/10 border border-white/10 px-4 py-2 rounded-xl text-zinc-300 font-bold hover:bg-white/20 transition-all active:scale-95"
+        >
+          View Profile View
+        </button>
       </div>
 
       <div className="p-5 max-w-lg mx-auto space-y-6">
-        {/* Identity Section */}
-        <div className="flex flex-col items-center p-6 bg-white/[0.02] border border-white/5 rounded-2xl text-center">
-          <img src={user?.profilePic || 'https://via.placeholder.com/150'} className="w-20 h-20 rounded-full object-cover border-2 border-white/10 shadow-xl mb-3" alt="" />
-          <h2 className="text-xl font-bold">{user?.fullName || "No Name"}</h2>
-          <p className="text-sm text-zinc-500">@{user?.username}</p>
+        {/* Top Identity Avatar Display Deck */}
+        <div className="flex flex-col items-center p-6 bg-white/[0.02] border border-white/5 rounded-2xl text-center relative group">
+          <div 
+            onClick={triggerAvatarManagementOptions} 
+            className="relative cursor-pointer transition-transform hover:scale-105 active:scale-95 group mb-3"
+            title="Click to manage or upload avatar file asset"
+          >
+            {user?.profilePic ? (
+              <img src={user.profilePic} className="w-24 h-24 rounded-full object-cover border-2 border-white/10 shadow-2xl" alt="" />
+            ) : (
+              <div className="w-24 h-24 rounded-full bg-zinc-900 border-2 border-dashed border-white/20 flex items-center justify-center text-zinc-500">
+                <svg viewBox="0 0 24 24" className="w-10 h-10 fill-current">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 2 4 2zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+              </div>
+            )}
+            <div className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center text-[10px] font-bold text-white uppercase opacity-0 group-hover:opacity-100 transition-opacity">
+              Edit Avatar
+            </div>
+          </div>
+          
+          <h2 className="text-xl font-bold tracking-tight">{user?.fullName || "No Identity Registered"}</h2>
+          <p className="text-sm text-zinc-500">@{user?.username || "no-handle"}</p>
+          {user?.isAdmin && <span className="mt-2 text-[9px] font-black tracking-widest uppercase bg-blue-600 px-2 py-0.5 rounded text-white shadow-md">System Administrator</span>}
         </div>
 
-        {/* Core Settings Deck */}
+        {/* Dynamic Parameter In-Line Editors */}
+        <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 space-y-4">
+          <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest border-b border-white/5 pb-2">Modify Identity Records</p>
+          
+          {/* Username Control Component Grid */}
+          <div className="space-y-1.5">
+            <label className="text-xs text-zinc-400 font-medium">System Handle Name (@)</label>
+            {isEditingUsername ? (
+              <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  value={usernameInput} 
+                  onChange={(e) => setUsernameInput(e.target.value)}
+                  className="flex-1 bg-black border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none"
+                />
+                <button onClick={saveUsername} className="bg-green-600 px-3 py-1 text-xs rounded-xl font-bold">Save</button>
+                <button onClick={() => setIsEditingUsername(false)} className="bg-white/10 px-3 py-1 text-xs rounded-xl text-zinc-400">Cancel</button>
+              </div>
+            ) : (
+              <div className="flex justify-between items-center p-3 bg-black rounded-xl border border-white/5">
+                <span className="text-sm text-zinc-300">@{user?.username}</span>
+                <button onClick={() => { setUsernameInput(user?.username || ""); setIsEditingUsername(true); }} className="text-xs text-blue-400 font-bold">Change</button>
+              </div>
+            )}
+          </div>
+
+          {/* Bio Control Component Grid */}
+          <div className="space-y-1.5">
+            <label className="text-xs text-zinc-400 font-medium">User Profile Bio Statement</label>
+            {isEditingBio ? (
+              <div className="flex flex-col gap-2">
+                <textarea 
+                  value={bioInput} 
+                  onChange={(e) => setBioInput(e.target.value)}
+                  className="w-full h-20 bg-black border border-white/10 rounded-xl p-3 text-xs text-white outline-none resize-none"
+                />
+                <div className="flex gap-2 justify-end">
+                  <button onClick={() => setIsEditingBio(false)} className="bg-white/10 px-4 py-1.5 text-xs rounded-xl text-zinc-400">Cancel</button>
+                  <button onClick={saveBio} className="bg-green-600 px-4 py-1.5 text-xs rounded-xl font-bold">Apply</button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex justify-between items-start p-3 bg-black rounded-xl border border-white/5 gap-4">
+                <p className="text-xs text-zinc-400 italic leading-relaxed">{user?.bio || "No biography info written yet..."}</p>
+                <button onClick={() => { setBioInput(user?.bio || ""); setIsEditingBio(true); }} className="text-xs text-blue-400 font-bold shrink-0">Change</button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Global Security Framework Core Settings Deck */}
         <div className="space-y-3">
-          <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider px-1">Access & Badges</p>
+          <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider px-1">Access System Authority</p>
           
           <div className="grid grid-cols-2 gap-3">
             <button 
               onClick={handleVerification}
-              className={`p-4 rounded-xl border flex flex-col items-center gap-2 font-bold transition-all ${user?.isVerified ? 'bg-blue-600/10 border-blue-500 text-blue-400' : 'bg-white/5 border-white/5 text-zinc-400'}`}
+              className={`p-4 rounded-xl border flex flex-col items-center justify-center gap-2 font-bold text-center transition-all ${user?.isVerified ? 'bg-blue-600/10 border-blue-500 text-blue-400' : 'bg-white/5 border-white/5 text-zinc-500'}`}
             >
-              <CheckCircle size={20} />
-              <span className="text-xs">{user?.isVerified ? "Verified Badge Active" : "Unverified Status"}</span>
+              <CheckCircle size={18} />
+              <span className="text-[11px] leading-tight">{user?.isVerified ? "Verified Active" : "Unverified Status"}</span>
             </button>
 
             <button 
               onClick={handleBanToggle}
-              className={`p-4 rounded-xl border flex flex-col items-center gap-2 font-bold transition-all ${user?.isBanned ? 'bg-red-600/20 border-red-500 text-red-500' : 'bg-white/5 border-white/5 text-zinc-400'}`}
+              className={`p-4 rounded-xl border flex flex-col items-center justify-center gap-2 font-bold text-center transition-all ${user?.isBanned ? 'bg-red-600/20 border-red-500 text-red-500' : 'bg-white/5 border-white/5 text-zinc-500'}`}
             >
-              {user?.isBanned ? <UserCheck size={20} /> : <UserX size={20} />}
-              <span className="text-xs">{user?.isBanned ? "Lift Account Ban" : "Suspend Account"}</span>
+              {user?.isBanned ? <UserCheck size={18} /> : <UserX size={18} />}
+              <span className="text-[11px] leading-tight">{user?.isBanned ? "Lift Suspended Ban" : "Suspend Account"}</span>
+            </button>
+
+            <button 
+              onClick={handleAdminToggle}
+              className={`p-4 rounded-xl border flex flex-col items-center justify-center gap-2 font-bold text-center transition-all ${user?.isAdmin ? 'bg-indigo-600/20 border-indigo-500 text-indigo-400' : 'bg-white/5 border-white/5 text-zinc-500'}`}
+            >
+              <Shield size={18} />
+              <span className="text-[11px] leading-tight">{user?.isAdmin ? "Revoke Admin Status" : "Promote to Admin"}</span>
+            </button>
+
+            <button 
+              onClick={handlePasswordReset}
+              className="p-4 rounded-xl border bg-white/5 border-white/5 text-zinc-400 hover:border-zinc-700 flex flex-col items-center justify-center gap-2 font-bold text-center transition-all"
+            >
+              <svg viewBox="0 0 24 24" className="w-4 h-4 stroke-current fill-none stroke-[2]">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              <span className="text-[11px] leading-tight">Audit / Change Pass</span>
             </button>
           </div>
         </div>
@@ -126,7 +376,7 @@ export default function AdminUserEdit() {
               type="number" 
               value={inflationInput}
               onChange={(e) => setInflationInput(e.target.value)}
-              className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-purple-500"
+              className="flex-1 bg-black border border-white/10 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-purple-500 text-white"
               placeholder="E.g. 50000"
             />
             <button 
@@ -137,7 +387,22 @@ export default function AdminUserEdit() {
             </button>
           </div>
         </div>
+
+        {/* Catastrophic Danger Zone Cleanup Block */}
+        <div className="p-4 border border-red-500/20 bg-red-950/10 rounded-2xl space-y-3">
+          <div className="space-y-0.5">
+            <h4 className="text-sm font-bold text-red-500">System Danger Zone</h4>
+            <p className="text-xs text-zinc-500">Irreversible operational actions against firestore instances.</p>
+          </div>
+          <button 
+            onClick={executeCatastrophicPurge}
+            className="w-full bg-red-600 hover:bg-red-700 text-white font-black text-xs uppercase tracking-widest py-3.5 rounded-xl transition-colors active:scale-98"
+          >
+            Obliterate Account Record
+          </button>
+        </div>
       </div>
     </div>
   );
 }
+
