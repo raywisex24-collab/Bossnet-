@@ -17,6 +17,7 @@ export default function EditProfile() {
   const [bio, setBio] = useState("");
   const [website, setWebsite] = useState("");
   const [profilePic, setProfilePic] = useState("");
+  const [gender, setGender] = useState(""); // 👈 Added form target state
   
   // Logic States
   const [isUsernameValid, setIsUsernameValid] = useState(true);
@@ -40,6 +41,7 @@ export default function EditProfile() {
           setBio(data.bio || "");
           setWebsite(data.website || "");
           setProfilePic(data.profilePic || "");
+          setGender(data.gender || ""); // 👈 Pulls the active string option straight from database field
         } else {
           // Auto-create for missing IDs
           const newData = {
@@ -172,24 +174,35 @@ export default function EditProfile() {
     return () => clearTimeout(timer);
   }, [username, userData]);
 
-  const canEditUsername = () => {
-    if (!userData?.lastUsernameUpdate) return true;
-    const twoWeeks = 14 * 24 * 60 * 60 * 1000;
-    return Date.now() > userData.lastUsernameUpdate.toDate().getTime() + twoWeeks;
+  // Returns remaining days for username (14 days cooldown)
+  const getUsernameCooldownDays = () => {
+    if (!userData?.lastUsernameUpdate) return 0;
+    const cooldownPeriod = 14 * 24 * 60 * 60 * 1000;
+    const timePassed = Date.now() - userData.lastUsernameUpdate.toDate().getTime();
+    const timeLeft = cooldownPeriod - timePassed;
+    return timeLeft > 0 ? Math.ceil(timeLeft / (24 * 60 * 60 * 1000)) : 0;
   };
 
-  const canEditFullName = () => {
-    if (!userData?.lastFullNameUpdate) return true;
-    const twoMonths = 60 * 24 * 60 * 60 * 1000;
-    return Date.now() > userData.lastFullNameUpdate.toDate().getTime() + twoMonths;
+  // Returns remaining days for names (60 days cooldown)
+  const getFullNameCooldownDays = () => {
+    if (!userData?.lastFullNameUpdate) return 0;
+    const cooldownPeriod = 60 * 24 * 60 * 60 * 1000;
+    const timePassed = Date.now() - userData.lastFullNameUpdate.toDate().getTime();
+    const timeLeft = cooldownPeriod - timePassed;
+    return timeLeft > 0 ? Math.ceil(timeLeft / (24 * 60 * 60 * 1000)) : 0;
   };
+
+  // Executable validation layers used by your inputs
+  const canEditUsername = () => getUsernameCooldownDays() === 0;
+  const canEditFullName = () => getFullNameCooldownDays() === 0;
 
   const handleDone = async () => {
     if (!isUsernameValid) return Swal.fire("Error", "Username is taken", "error");
 
     const updates = { 
       bio: bio.trim(), 
-      website: website.trim() 
+      website: website.trim(),
+      gender: gender.trim() // 👈 Integrates gender string directly to your existing field update block
     };
     const userRef = doc(db, "users", auth.currentUser.uid);
 
@@ -291,7 +304,7 @@ export default function EditProfile() {
             placeholder="First name"
             className={`w-full bg-transparent outline-none py-2 text-sm ${!canEditFullName() ? 'text-gray-500 opacity-50' : 'text-boss-text'}`}
           />
-          {!canEditFullName() && <p className="text-[10px] text-red-500 mt-1 italic">wait 60 days</p>}
+{!canEditFullName() && <p className="text-[10px] text-amber-500 mt-1 font-semibold italic">Locked: {getFullNameCooldownDays()} days remaining</p>}
         </div>
 
         {/* Full Name Field */}
@@ -303,7 +316,7 @@ export default function EditProfile() {
             disabled={!canEditFullName()}
             className={`w-full bg-transparent outline-none py-2 text-sm ${!canEditFullName() ? 'text-gray-500 opacity-50' : 'text-boss-text'}`}
           />
-          {!canEditFullName() && <p className="text-[10px] text-red-500 mt-1 italic">wait 60 days</p>}
+{!canEditFullName() && <p className="text-[10px] text-amber-500 mt-1 font-semibold italic">Locked: {getFullNameCooldownDays()} days remaining</p>}
         </div>
 
         {/* Username Field */}
@@ -320,7 +333,7 @@ export default function EditProfile() {
             {!isUsernameValid && <span className="text-red-500 text-xs font-bold ml-2 uppercase">Taken</span>}
             {isUsernameValid && username !== userData?.username && <Check size={16} className="text-green-500 ml-2" />}
           </div>
-          {!canEditUsername() && <p className="text-[10px] text-red-500 mt-1 italic">wait 14 days</p>}
+{!canEditUsername() && <p className="text-[10px] text-amber-500 mt-1 font-semibold italic">Locked: {getUsernameCooldownDays()} days remaining</p>}
         </div>
 
         {/* Bio Field */}
@@ -343,6 +356,21 @@ export default function EditProfile() {
             onChange={(e) => setWebsite(e.target.value)}
             className="w-full bg-transparent outline-none py-2 text-sm text-blue-400"
           />
+        </div>
+
+        {/* Gender Field Element Dropdown Section */}
+        <div className="border-b border-white/10 pb-2">
+          <label className="text-gray-500 text-[11px] uppercase font-bold tracking-wider">Gender</label>
+          <select 
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
+            className="w-full bg-transparent outline-none py-2 text-sm text-boss-text cursor-pointer appearance-none"
+          >
+            <option value="" disabled className="bg-[#1c1e22] text-gray-500">Select Gender</option>
+            <option value="Male" className="bg-[#1c1e22]">Male</option>
+            <option value="Female" className="bg-[#1c1e22]">Female</option>
+            <option value="Prefer not to say" className="bg-[#1c1e22]">Prefer not to say</option>
+          </select>
         </div>
 
         {/* Email Field */}
