@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
-import { collection, doc, getDoc, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, getDoc, onSnapshot, addDoc, serverTimestamp, query, where } from 'firebase/firestore'; // 👈 Added query & where
 import { useNavigate } from 'react-router-dom';
 import { Shield, ArrowLeft, AlertTriangle, Megaphone, Users, Activity } from 'lucide-react';
 import Swal from 'sweetalert2';
@@ -15,6 +15,7 @@ export default function AdminPanel() {
   const [reports, setReports] = useState([]);
   const [announcement, setAnnouncement] = useState('');
   const [stats, setStats] = useState({ usersCount: 0, reportsCount: 0 });
+  const [onlineUsers, setOnlineUsers] = useState([]); // 👈 Track online users array
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -50,7 +51,13 @@ export default function AdminPanel() {
       setStats(prev => ({ ...prev, usersCount: snapshot.docs.length }));
     });
 
-    return () => { unsubReports(); unsubUsersCount(); };
+    // 🔴 LIVE ONLINE USERS SNAPSHOT FETCH
+    const onlineQuery = query(collection(db, "users"), where("status", "==", "online"));
+    const unsubOnline = onSnapshot(onlineQuery, (snapshot) => {
+      setOnlineUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+
+    return () => { unsubReports(); unsubUsersCount(); unsubOnline(); };
   }, [isAdmin]);
 
   const sendBroadcast = async (e) => {
@@ -81,7 +88,7 @@ export default function AdminPanel() {
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-boss-bg flex items-center justify-center">
+    <div className="min-h-screen !bg-[#1c1e22] flex items-center justify-center" style={{ backgroundColor: '#1c1e22' }}>
       <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
     </div>
   );
@@ -89,9 +96,9 @@ export default function AdminPanel() {
   if (!isAdmin) return null;
 
   return (
-    <div className="min-h-screen bg-boss-bg text-boss-text font-sans pb-24">
+    <div className="min-h-screen !bg-[#1c1e22] text-boss-text font-sans pb-24" style={{ backgroundColor: '#1c1e22' }}>
       {/* Fixed Header */}
-      <div className="flex items-center gap-4 p-4 border-b border-white/10 sticky top-0 bg-boss-bg z-50">
+      <div className="flex items-center gap-4 p-4 border-b border-white/10 sticky top-0 z-50" style={{ backgroundColor: '#1c1e22' }}>
         <ArrowLeft onClick={() => navigate('/feed')} className="cursor-pointer text-zinc-400 hover:text-white" />
         <div className="flex items-center gap-2">
           <Shield className="text-blue-500" size={22} />
@@ -115,6 +122,7 @@ export default function AdminPanel() {
         {/* Dashboard Nav Segments */}
         <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
           <button onClick={() => setActiveTab('dashboard')} className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'dashboard' ? 'bg-blue-600 text-white shadow-md' : 'text-zinc-400'}`}>Control Deck</button>
+          <button onClick={() => setActiveTab('online')} className={`flex-1 py-2 text-xs font-bold rounded-lg relative transition-all ${activeTab === 'online' ? 'bg-emerald-600 text-white shadow-md' : 'text-zinc-400'}`}>Online ({onlineUsers.length})</button>
           <button onClick={() => setActiveTab('reports')} className={`flex-1 py-2 text-xs font-bold rounded-lg relative transition-all ${activeTab === 'reports' ? 'bg-red-600 text-white shadow-md' : 'text-zinc-400'}`}>Reports Center {reports.length > 0 && <span className="absolute -top-1 -right-1 bg-white text-red-600 text-[9px] px-1.5 py-0.5 rounded-full font-black">{reports.length}</span>}</button>
           <button onClick={() => setActiveTab('broadcast')} className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'broadcast' ? 'bg-purple-600 text-white shadow-md' : 'text-zinc-400'}`}>Broadcast Hook</button>
         </div>
@@ -132,6 +140,51 @@ export default function AdminPanel() {
                 <div><h3 className="font-bold text-base">Users Directory</h3><p className="text-xs text-zinc-400 mt-0.5">Manage users credentials</p></div>
               </div>
             </div>
+            
+            {/* Quick-Jump Shortcut Button to Online Users View */}
+            <div 
+              onClick={() => setActiveTab('online')}
+              className="group p-5 bg-gradient-to-r from-emerald-600/10 to-transparent border border-emerald-500/20 rounded-2xl flex items-center justify-between cursor-pointer hover:border-emerald-500/40 transition-all active:scale-98"
+            >
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-emerald-600/20 text-emerald-400 rounded-xl group-hover:scale-110 transition-transform"><Activity size={24} /></div>
+                <div><h3 className="font-bold text-base">Live Pulse</h3><p className="text-xs text-zinc-400 mt-0.5">{onlineUsers.length} active sessions right now</p></div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ONLINE USERS ACTIVE DIRECTORY VIEWPORT */}
+        {activeTab === 'online' && (
+          <div className="space-y-2">
+            <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider px-1">Live Sessions ({onlineUsers.length})</p>
+            {onlineUsers.length === 0 ? (
+              <div className="text-center py-12 text-zinc-500 text-sm">Nobody is online at the moment, boss.</div>
+            ) : (
+              onlineUsers.map((user) => (
+                <div 
+                  key={user.id}
+                  onClick={() => navigate(`/admin/users/edit/${user.id}`)}
+                  className="p-4 bg-white/[0.02] border border-white/5 hover:border-emerald-500/30 rounded-2xl flex items-center justify-between cursor-pointer transition-all active:scale-99"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="relative w-10 h-10">
+                      <img 
+                        src={user.profilePic || 'data:image/svg+xml;charset=utf-8,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%238a8d91"%3E%3Cpath d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/%3E%3C/svg%3E'} 
+                        className="w-full h-full rounded-full object-cover border border-white/10" 
+                        alt="" 
+                      />
+                      <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-[#1c1e22] rounded-full"></span>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm text-white">@{user.username || 'unknown_boss'}</h4>
+                      <p className="text-[11px] text-zinc-500 truncate max-w-[180px]">{user.email}</p>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full uppercase tracking-wider">Modify Account</span>
+                </div>
+              ))
+            )}
           </div>
         )}
 
