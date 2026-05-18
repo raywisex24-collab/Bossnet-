@@ -28,11 +28,11 @@ export default function AdminPanel() {
           setIsAdmin(true);
         } else {
           Swal.fire("Access Denied", "Admins only, boss!", "error");
-          navigate('/feed');
+          navigate('/me');
         }
       } catch (err) {
         console.error(err);
-        navigate('/feed');
+        navigate('/me');
       } finally {
         setLoading(false);
       }
@@ -99,7 +99,7 @@ export default function AdminPanel() {
     <div className="min-h-screen !bg-[#1c1e22] text-boss-text font-sans pb-24" style={{ backgroundColor: '#1c1e22' }}>
       {/* Fixed Header */}
       <div className="flex items-center gap-4 p-4 border-b border-white/10 sticky top-0 z-50" style={{ backgroundColor: '#1c1e22' }}>
-        <ArrowLeft onClick={() => navigate('/feed')} className="cursor-pointer text-zinc-400 hover:text-white" />
+        <ArrowLeft onClick={() => navigate('/me')} className="cursor-pointer text-zinc-400 hover:text-white" />
         <div className="flex items-center gap-2">
           <Shield className="text-blue-500" size={22} />
           <h1 className="text-xl font-bold tracking-tight">ADMIN PANEL</h1>
@@ -107,49 +107,91 @@ export default function AdminPanel() {
       </div>
 
       <div className="p-4 max-w-lg mx-auto mt-2 space-y-6">
-        {/* Metric Quick Stats Banner */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white/[0.02] border border-white/5 p-4 rounded-2xl flex items-center justify-between">
-            <div><p className="text-xs text-zinc-500 font-bold uppercase">Total Number Of Users</p><p className="text-2xl font-black mt-1">{stats.usersCount}</p></div>
-            <Users className="text-blue-500/40" size={28} />
-          </div>
-          <div className="bg-white/[0.02] border border-white/5 p-4 rounded-2xl flex items-center justify-between">
-            <div><p className="text-xs text-zinc-500 font-bold uppercase">Unread Alerts</p><p className="text-2xl font-black mt-1 text-red-500">{reports.length}</p></div>
-            <AlertTriangle className="text-red-500/40" size={28} />
-          </div>
-        </div>
-
-        {/* Dashboard Nav Segments */}
-        <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
-          <button onClick={() => setActiveTab('dashboard')} className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'dashboard' ? 'bg-blue-600 text-white shadow-md' : 'text-zinc-400'}`}>Control Deck</button>
-          <button onClick={() => setActiveTab('online')} className={`flex-1 py-2 text-xs font-bold rounded-lg relative transition-all ${activeTab === 'online' ? 'bg-emerald-600 text-white shadow-md' : 'text-zinc-400'}`}>Online ({onlineUsers.length})</button>
-          <button onClick={() => setActiveTab('reports')} className={`flex-1 py-2 text-xs font-bold rounded-lg relative transition-all ${activeTab === 'reports' ? 'bg-red-600 text-white shadow-md' : 'text-zinc-400'}`}>Reports Center {reports.length > 0 && <span className="absolute -top-1 -right-1 bg-white text-red-600 text-[9px] px-1.5 py-0.5 rounded-full font-black">{reports.length}</span>}</button>
-          <button onClick={() => setActiveTab('broadcast')} className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeTab === 'broadcast' ? 'bg-purple-600 text-white shadow-md' : 'text-zinc-400'}`}>Broadcast Hook</button>
+        {/* Dashboard Nav Segments (Moved to Top) */}
+        <div className="flex bg-zinc-900/60 p-1 rounded-xl border border-white/10 overflow-x-auto gap-1 scrollbar-none">
+          <button onClick={() => setActiveTab('dashboard')} className={`flex-1 min-w-[90px] py-2 text-[11px] font-black uppercase rounded-lg transition-all ${activeTab === 'dashboard' ? 'bg-[#7c2d12] text-white shadow-md shadow-emerald-500/20 border border-emerald-500/30' : 'text-zinc-400'}`}>Deck</button>
+          <button onClick={() => setActiveTab('online')} className={`flex-1 min-w-[90px] py-2 text-[11px] font-black uppercase rounded-lg relative transition-all ${activeTab === 'online' ? 'bg-[#7c2d12] text-white shadow-md shadow-emerald-500/20 border border-emerald-500/30' : 'text-zinc-400'}`}>Online ({onlineUsers.length})</button>
+          <button onClick={() => setActiveTab('reports')} className={`flex-1 min-w-[90px] py-2 text-[11px] font-black uppercase rounded-lg relative transition-all ${activeTab === 'reports' ? 'bg-[#7c2d12] text-white shadow-md shadow-emerald-500/20 border border-emerald-500/30' : 'text-zinc-400'}`}>Reports {reports.length > 0 && <span className="ml-1 bg-red-600 text-white text-[9px] px-1 rounded-full">{reports.length}</span>}</button>
+          <button onClick={() => setActiveTab('broadcast')} className={`flex-1 min-w-[90px] py-2 text-[11px] font-black uppercase rounded-lg transition-all ${activeTab === 'broadcast' ? 'bg-[#7c2d12] text-white shadow-md shadow-emerald-500/20 border border-emerald-500/30' : 'text-zinc-400'}`}>Broadcast</button>
         </div>
 
         {/* CONTROLS GRID TAB */}
         {activeTab === 'dashboard' && (
           <div className="space-y-3">
-            <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider px-1">Platform Modules</p>
-            <div 
-              onClick={() => navigate('/admin/users')}
-              className="group p-5 bg-gradient-to-r from-blue-600/10 to-transparent border border-blue-500/20 rounded-2xl flex items-center justify-between cursor-pointer hover:border-blue-500/40 transition-all active:scale-98"
-            >
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-blue-600/20 text-blue-400 rounded-xl group-hover:scale-110 transition-transform"><Users size={24} /></div>
-                <div><h3 className="font-bold text-base">Users Directory</h3><p className="text-xs text-zinc-400 mt-0.5">Manage users credentials</p></div>
-              </div>
-            </div>
+            <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider px-1">Platform Control Deck</p>
             
-            {/* Quick-Jump Shortcut Button to Online Users View */}
-            <div 
-              onClick={() => setActiveTab('online')}
-              className="group p-5 bg-gradient-to-r from-emerald-600/10 to-transparent border border-emerald-500/20 rounded-2xl flex items-center justify-between cursor-pointer hover:border-emerald-500/40 transition-all active:scale-98"
-            >
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-emerald-600/20 text-emerald-400 rounded-xl group-hover:scale-110 transition-transform"><Activity size={24} /></div>
-                <div><h3 className="font-bold text-base">Live Pulse</h3><p className="text-xs text-zinc-400 mt-0.5">{onlineUsers.length} active sessions right now</p></div>
+            {/* The Unified Grid Container with 1px fine dividers */}
+            <div className="grid grid-cols-3 gap-[1px] bg-white/10 border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+              
+              {/* Box 1: Total Users (Stat Display) */}
+              <div className="bg-[#4a2311] p-4 min-h-[110px] flex flex-col justify-between items-center text-center transition-all duration-200 active:bg-[#2e150a] active:shadow-[inset_0_0_15px_rgba(16,185,129,0.6)] group">
+                <Users className="text-orange-400/60 group-active:text-emerald-400 transition-colors" size={20} />
+                <div className="mt-2">
+                  <p className="text-[20px] font-black text-white leading-none">{stats.usersCount}</p>
+                  <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-tight mt-1">Total Users</p>
+                </div>
               </div>
+
+              {/* Box 2: Unread Alerts (Stat Display) */}
+              <div className="bg-[#4a2311] p-4 min-h-[110px] flex flex-col justify-between items-center text-center transition-all duration-200 active:bg-[#2e150a] active:shadow-[inset_0_0_15px_rgba(16,185,129,0.6)] group">
+                <AlertTriangle className={`${reports.length > 0 ? 'text-red-400' : 'text-zinc-500'} group-active:text-emerald-400 transition-colors`} size={20} />
+                <div className="mt-2">
+                  <p className={`text-[20px] font-black leading-none ${reports.length > 0 ? 'text-red-400' : 'text-white'}`}>{reports.length}</p>
+                  <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-tight mt-1">Unread Alerts</p>
+                </div>
+              </div>
+
+              {/* Box 3: Live Pulse (Action Button to Online Tab) */}
+              <div 
+                onClick={() => setActiveTab('online')}
+                className="bg-[#4a2311] p-4 min-h-[110px] flex flex-col justify-between items-center text-center cursor-pointer transition-all duration-200 hover:bg-[#5c2b15] active:bg-[#2e150a] active:shadow-[inset_0_0_15px_rgba(16,185,129,0.8)] group"
+              >
+                <Activity className="text-emerald-400 group-active:scale-110 transition-transform" size={20} />
+                <div className="mt-2">
+                  <p className="text-[20px] font-black text-emerald-400 leading-none">{onlineUsers.length}</p>
+                  <p className="text-[9px] text-zinc-300 font-bold uppercase tracking-tight mt-1">Live Pulse</p>
+                </div>
+              </div>
+
+              {/* Box 4: Users Directory (Action Button) */}
+              <div 
+                onClick={() => navigate('/admin/users')}
+                className="bg-[#4a2311] p-4 min-h-[110px] flex flex-col justify-center items-center text-center cursor-pointer transition-all duration-200 hover:bg-[#5c2b15] active:bg-[#2e150a] active:shadow-[inset_0_0_15px_rgba(16,185,129,0.8)] group"
+              >
+                <Users className="text-zinc-300 group-active:text-emerald-400" size={22} />
+                <p className="text-[10px] text-white font-black uppercase tracking-wider mt-3">Users Main</p>
+              </div>
+
+              {/* Box 5: Placeholder for future modules */}
+              <div className="bg-[#4a2311] p-4 min-h-[110px] flex flex-col justify-center items-center text-center opacity-40 select-none">
+                <div className="w-5 h-5 border border-dashed border-zinc-500 rounded-md"></div>
+                <p className="text-[9px] text-zinc-500 font-bold uppercase mt-3">Empty Slot</p>
+              </div>
+
+              {/* Box 6: Placeholder for future modules */}
+              <div className="bg-[#4a2311] p-4 min-h-[110px] flex flex-col justify-center items-center text-center opacity-40 select-none">
+                <div className="w-5 h-5 border border-dashed border-zinc-500 rounded-md"></div>
+                <p className="text-[9px] text-zinc-500 font-bold uppercase mt-3">Empty Slot</p>
+              </div>
+
+              {/* Box 7: Placeholder for future modules */}
+              <div className="bg-[#4a2311] p-4 min-h-[110px] flex flex-col justify-center items-center text-center opacity-40 select-none">
+                <div className="w-5 h-5 border border-dashed border-zinc-500 rounded-md"></div>
+                <p className="text-[9px] text-zinc-500 font-bold uppercase mt-3">Empty Slot</p>
+              </div>
+
+              {/* Box 8: Placeholder for future modules */}
+              <div className="bg-[#4a2311] p-4 min-h-[110px] flex flex-col justify-center items-center text-center opacity-40 select-none">
+                <div className="w-5 h-5 border border-dashed border-zinc-500 rounded-md"></div>
+                <p className="text-[9px] text-zinc-500 font-bold uppercase mt-3">Empty Slot</p>
+              </div>
+
+              {/* Box 9: Placeholder for future modules */}
+              <div className="bg-[#4a2311] p-4 min-h-[110px] flex flex-col justify-center items-center text-center opacity-40 select-none">
+                <div className="w-5 h-5 border border-dashed border-zinc-500 rounded-md"></div>
+                <p className="text-[9px] text-zinc-500 font-bold uppercase mt-3">Empty Slot</p>
+              </div>
+
             </div>
           </div>
         )}
@@ -226,4 +268,3 @@ export default function AdminPanel() {
     </div>
   );
 }
-
