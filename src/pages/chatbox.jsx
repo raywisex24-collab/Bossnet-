@@ -46,6 +46,26 @@ export default function Chatbox() {
   }, []);
 
   useEffect(() => {
+    const user = auth.currentUser;
+    if (!user) return;
+    const userRef = doc(db, "users", user.uid);
+    const updateStatus = (status) => {
+      updateDoc(userRef, { status: status, lastSeen: serverTimestamp() }).catch(e => console.error(e));
+    };
+
+    updateStatus('online');
+    const handleVisibilityChange = () => {
+      updateStatus(document.visibilityState === 'visible' ? 'online' : 'offline');
+    };
+
+    window.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      updateStatus('offline');
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
+  useEffect(() => {
     const fetchUser = async () => {
       const user = auth.currentUser;
       if (user) {
@@ -254,7 +274,7 @@ function ChatList({ userData, totalUnread, searchTerm, setSearchTerm, searchResu
           }}
         >
           <Plus size={18} strokeWidth={3} />
-          VIEW GROUPS
+          GROUPS
         </motion.button>
       </div>
 
