@@ -362,7 +362,7 @@ export default function AdminUserEdit() {
           onClick={() => navigate(`/profile/${userId}`)}
           className="text-xs bg-white/10 border border-white/10 px-4 py-2 rounded-xl text-zinc-300 font-bold hover:bg-white/20 transition-all active:scale-95"
         >
-          View Profile View
+          View Profile
         </button>
       </div>
 
@@ -505,6 +505,39 @@ export default function AdminUserEdit() {
                 <button onClick={() => { setBioInput(user?.bio || ""); setIsEditingBio(true); }} className="text-xs text-blue-400 font-bold shrink-0">Change</button>
               </div>
             )}
+          </div>
+        </div>
+
+        {/* Profile Badge Categorization Section */}
+        <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 space-y-4">
+          <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest border-b border-white/5 pb-2">Profile Identity Flags (Admin Only)</p>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { id: 'isArtist', label: 'Artist' },
+              { id: 'isBusiness', label: 'Business' },
+              { id: 'isPublicFigure', label: 'Public Figure' },
+              { id: 'isDigitalCreator', label: 'Digital Creator' },
+              { id: 'isGamer', label: 'Gamer' },
+              { id: 'isTech', label: 'Tech Enthusiast' }
+            ].map((badge) => (
+              <button
+                key={badge.id}
+                onClick={async () => {
+                  try {
+                    await updateDoc(doc(db, "users", userId), { [badge.id]: !user?.[badge.id] });
+                  } catch (e) {
+                    Swal.fire("Error", "Failed to update badge", "error");
+                  }
+                }}
+                className={`p-3 rounded-xl border text-xs font-bold transition-all text-center ${
+                  user?.[badge.id] 
+                    ? 'bg-purple-600/20 border-purple-500 text-purple-400 font-black' 
+                    : 'bg-black border-white/5 text-zinc-500 hover:border-white/10'
+                }`}
+              >
+                {badge.label}: {user?.[badge.id] ? "ON" : "OFF"}
+              </button>
+            ))}
           </div>
         </div>
 

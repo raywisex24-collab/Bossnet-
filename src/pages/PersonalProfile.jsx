@@ -198,7 +198,17 @@ export default function PersonalProfile() {
         <div className="space-y-0.5">
           <h2 className="text-sm font-bold">{profileData?.fullName || "Raywise"}</h2>
           <p className="text-sm text-gray-400 font-medium">{profileData?.profession || ""}</p>
-          <p className="text-sm leading-tight">{profileData?.bio}</p>
+          <p className="text-sm leading-tight mb-2">{profileData?.bio}</p>
+          
+          {/* Admin Managed Identity Badges Grid Layout */}
+          <div className="flex flex-wrap gap-1.5 pt-1.5">
+            {profileData?.isArtist && <span className="px-2 py-0.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold rounded-md tracking-wide uppercase">Artist</span>}
+            {profileData?.isBusiness && <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold rounded-md tracking-wide uppercase">Business</span>}
+            {profileData?.isPublicFigure && <span className="px-2 py-0.5 bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[10px] font-bold rounded-md tracking-wide uppercase">Public Figure</span>}
+            {profileData?.isDigitalCreator && <span className="px-2 py-0.5 bg-pink-500/10 border border-pink-500/20 text-pink-400 text-[10px] font-bold rounded-md tracking-wide uppercase">Creator</span>}
+            {profileData?.isGamer && <span className="px-2 py-0.5 bg-red-500/10 border border-red-500/20 text-red-400 text-[10px] font-bold rounded-md tracking-wide uppercase">Gamer</span>}
+            {profileData?.isTech && <span className="px-2 py-0.5 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[10px] font-bold rounded-md tracking-wide uppercase">Tech</span>}
+          </div>
         </div>
 
         <div className="flex gap-2 mt-6">

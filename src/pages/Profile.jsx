@@ -162,9 +162,19 @@ export default function Profile() {
           <h2 className="text-sm font-medium text-gray-400 mt-0.5">{profileData?.fullName || 'Boss User'}</h2>
         </div>
 
-        <p className="text-gray-500 text-xs font-bold uppercase tracking-[0.2em] mt-1 mb-6">
+        <p className="text-gray-500 text-xs font-bold uppercase tracking-[0.2em] mt-1 mb-3">
           @{profileData?.username || 'username'}
         </p>
+
+        {/* Public Admin Managed Identity Badges Grid Layout */}
+        <div className="flex flex-wrap justify-center gap-1.5 mb-6 max-w-xs">
+          {profileData?.isArtist && <span className="px-2 py-0.5 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[9px] font-bold rounded-md tracking-wide uppercase">Artist</span>}
+          {profileData?.isBusiness && <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[9px] font-bold rounded-md tracking-wide uppercase">Business</span>}
+          {profileData?.isPublicFigure && <span className="px-2 py-0.5 bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[9px] font-bold rounded-md tracking-wide uppercase">Public Figure</span>}
+          {profileData?.isDigitalCreator && <span className="px-2 py-0.5 bg-pink-500/10 border border-pink-500/20 text-pink-400 text-[9px] font-bold rounded-md tracking-wide uppercase">Creator</span>}
+          {profileData?.isGamer && <span className="px-2 py-0.5 bg-red-500/10 border border-red-500/20 text-red-400 text-[9px] font-bold rounded-md tracking-wide uppercase">Gamer</span>}
+          {profileData?.isTech && <span className="px-2 py-0.5 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[9px] font-bold rounded-md tracking-wide uppercase">Tech</span>}
+        </div>
 
         {/* ACTION BUTTONS */}
         <div className="flex gap-3 w-full max-w-sm">
